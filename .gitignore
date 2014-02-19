@@ -35,3 +35,11 @@
 *.tdo
 /code/BridgeBuilder/nbproject/private/
 /code/BridgeBuilder/build/
+/code/BridgeBuilder/dist/
+/code/JOGLHighDynamicRangeDemo/nbproject/private/
+/code/JOGLHighDynamicRangeDemo/build/
+/code/JOGLHardwareShadowMappingDemo/nbproject/private/
+/code/JOGLInfiniteShadowVolumesDemo/nbproject/private/
+/code/JOGLInfiniteShadowVolumesDemo/build/
+/code/JOGLPickingDemo/nbproject/private/
+/code/JOGLPickingDemo/build/
