@@ -1,0 +1,65 @@
+\documentclass[a4paper,twoside,11pt]{article}
+\usepackage{a4wide,graphicx,subfigure,fancyhdr,amsmath,amssymb,algpseudocode,enumerate,hyperref, float}
+\usepackage[english]{babel}
+\numberwithin{equation}{section}
+
+%----------------------- Macros and Definitions --------------------------
+
+\setlength\headheight{20pt}
+\addtolength\topmargin{-10pt}
+\addtolength\footskip{20pt}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\ch}{\mathcal{CH}}
+
+\fancypagestyle{plain}{%
+\fancyhf{}
+\fancyhead[LO,RE]{\sffamily\bfseries\large}
+\fancyhead[RO,LE]{\sffamily\bfseries\large }
+\fancyfoot[LO,RE]{\sffamily\bfseries\large }
+\fancyfoot[RO,LE]{\sffamily\bfseries\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RO,LE]{\sffamily\bfseries\large 2IV05}
+\fancyhead[LO,RE]{\sffamily\bfseries\large Project Proposal}
+\fancyfoot[LO,RE]{\sffamily\bfseries\large }
+\fancyfoot[RO,LE]{\sffamily\bfseries\thepage}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{0pt}
+\newcommand{\name}{Bridge builder 3D}
+
+%-------------------------------- Title ----------------------------------
+
+\title{\vspace{-\baselineskip}\sffamily\bfseries 2IV05 - Bridge Builder}
+
+\author{
+Nicky Advokaat - 0740567 - {\tt n.advokaat@student.tue.nl} \\
+Bart Wezel - 0740608 - {\tt b.j.p.a.v.wezel@student.tue.nl}\\
+}
+
+\date{3\textsuperscript{rd} quartile, 2014}
+
+%--------------------------------- Text ----------------------------------
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\begin{abstract}
+This report is a concept version describing our project  for the course 2IV05 Additional Component Computer Graphics.
+\end{abstract}
+
+\input{introduction.tex}
+
+\input{requirements.tex}
+
+\input{solution.tex}
+
+\input{results.tex}
+
+\input{conclusion.tex}
+
+\end{document}
