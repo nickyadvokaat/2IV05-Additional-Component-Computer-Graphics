@@ -40,6 +40,7 @@ public class Main extends SimpleApplication {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
         settings.setTitle("BridgeBuilder Alpha");
+        settings.setSettingsDialogImage("Textures/logo.jpg");
         app.setSettings(settings);
         app.start();
     }
