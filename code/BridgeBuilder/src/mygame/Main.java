@@ -26,6 +26,7 @@ import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
+import com.jme3.ui.Picture;
 
 /**
  * test
@@ -44,6 +45,7 @@ public class Main extends SimpleApplication {
     private CharacterControl player;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false, keyq = false, keyz = false;
+    private int building_mode = 0;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -72,6 +74,9 @@ public class Main extends SimpleApplication {
 
         // load custom key mappings
         initKeys();
+
+        // draw HUD buttons
+        initHUD();
 
         // load terrain
         Spatial terrain = assetManager.loadModel("Scenes/Level1.j3o");
@@ -217,12 +222,16 @@ public class Main extends SimpleApplication {
         inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("KeyQ", new KeyTrigger(KeyInput.KEY_Q));
         inputManager.addMapping("KeyZ", new KeyTrigger(KeyInput.KEY_Z));
+        inputManager.addMapping("Key1", new KeyTrigger(KeyInput.KEY_1));
+        inputManager.addMapping("Key2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addListener(actionListener, "Left");
         inputManager.addListener(actionListener, "Right");
         inputManager.addListener(actionListener, "Up");
         inputManager.addListener(actionListener, "Down");
         inputManager.addListener(actionListener, "KeyQ");
         inputManager.addListener(actionListener, "KeyZ");
+        inputManager.addListener(actionListener, "Key1");
+        inputManager.addListener(actionListener, "Key2");
     }
     /**
      * Click object
@@ -266,7 +275,15 @@ public class Main extends SimpleApplication {
                     keyz = false;
                 }
             }
-            if (name.equals("Click") && !keyPressed) {
+            if (name.equals("Key1")) {
+                building_mode = 1;
+                initHUD();
+            }
+            if (name.equals("Key2")) {
+                building_mode = 2;
+                initHUD();
+            }
+            if (name.equals("Click") && !keyPressed && building_mode == 1) {
                 // 1. Reset results list.
                 CollisionResults results = new CollisionResults();
                 // 2. Aim the ray from cam loc to cam direction.
@@ -339,5 +356,80 @@ public class Main extends SimpleApplication {
         ch.setLocalTranslation( // center
                 settings.getWidth() / 2 - ch.getLineWidth() / 2, settings.getHeight() / 2 + ch.getLineHeight() / 2, 0);
         guiNode.attachChild(ch);
+    }
+    Picture pic_block;
+    Picture pic_undo;
+    Picture pic_start;
+    Picture pic_cable;
+
+    private void initHUD() {
+        pic_block = new Picture("block");
+        drawBlock(building_mode == 1);
+
+        pic_cable = new Picture("cable");
+        drawCable(building_mode == 2);
+
+        pic_undo = new Picture("undo");
+        drawUndo();
+
+        pic_start = new Picture("start");
+        drawStart();
+    }
+
+    private void drawBlock(Boolean isSelected) {
+        if (isSelected) {
+            pic_block.setImage(assetManager, "Textures/button_block_selected.png", true);
+        } else {
+            pic_block.setImage(assetManager, "Textures/button_block.png", true);
+        }
+        int width = settings.getWidth() / 10;
+        int height = width / 2;
+        int x = settings.getWidth() * 5 / 10;
+        int y = settings.getHeight() - 10 - height;
+
+        drawButton(pic_block, width, height, x, y);
+    }
+
+    private void drawCable(Boolean isSelected) {
+        if (isSelected) {
+            pic_cable.setImage(assetManager, "Textures/button_cable_selected.png", true);
+        } else {
+            pic_cable.setImage(assetManager, "Textures/button_cable.png", true);
+        }
+        int width = settings.getWidth() / 10;
+        int height = width / 2;
+        int x = settings.getWidth() * 7 / 10;
+        int y = settings.getHeight() - 10 - height;
+
+        drawButton(pic_cable, width, height, x, y);
+    }
+
+    private void drawUndo() {
+        pic_undo.setImage(assetManager, "Textures/button_undo.png", true);
+
+        int width = settings.getWidth() / 10;
+        int height = width;
+        int x = settings.getWidth() - width - 10;
+        int y = settings.getHeight() - 10 - height;
+
+        drawButton(pic_undo, width, height, x, y);
+    }
+
+    private void drawStart() {
+        pic_start.setImage(assetManager, "Textures/button_play.png", true);
+
+        int width = settings.getWidth() / 10;
+        int height = width;
+        int x = settings.getWidth() - width - 10;
+        int y = settings.getHeight() - 2 * 10 - 2 * height;
+
+        drawButton(pic_start, width, height, x, y);
+    }
+
+    private void drawButton(Picture pic, int width, int height, int x, int y) {
+        pic.setWidth(width);
+        pic.setHeight(height);
+        pic.setPosition(x, y);
+        guiNode.attachChild(pic);
     }
 }
