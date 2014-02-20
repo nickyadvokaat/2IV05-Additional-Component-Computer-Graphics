@@ -27,6 +27,9 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.ui.Picture;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 
 /**
  * test
@@ -52,12 +55,24 @@ public class Main extends SimpleApplication {
         AppSettings settings = new AppSettings(true);
         settings.setTitle("BridgeBuilder Alpha");
         settings.setSettingsDialogImage("Textures/logo.jpg");
+         try {
+            settings.setIcons(new BufferedImage[]{
+                ImageIO.read(Main.class.getResourceAsStream("/Textures/icon.png")),
+                ImageIO.read(Main.class.getResourceAsStream("/Textures/icon128.png")),
+                ImageIO.read(Main.class.getResourceAsStream("/Textures/icon32.png")),
+                ImageIO.read(Main.class.getResourceAsStream("/Textures/icon16.png"))
+            });
+        } catch (IOException e) {
+System.out.println(e.toString());
+        }
         app.setSettings(settings);
         app.start();
     }
 
     @Override
     public void simpleInitApp() {
+       
+
         /**
          * Set up Physics
          */
