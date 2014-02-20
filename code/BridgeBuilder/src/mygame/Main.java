@@ -29,6 +29,7 @@ import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.ui.Picture;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 /**
@@ -49,13 +50,15 @@ public class Main extends SimpleApplication {
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false, keyq = false, keyz = false;
     private int building_mode = 0;
+    private ArrayList<Geometry> addedBlocks;
+    private ArrayList<Geometry> addedAnchors;
 
     public static void main(String[] args) {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
         settings.setTitle("BridgeBuilder Alpha");
         settings.setSettingsDialogImage("Textures/logo.jpg");
-         try {
+        try {
             settings.setIcons(new BufferedImage[]{
                 ImageIO.read(Main.class.getResourceAsStream("/Textures/icon.png")),
                 ImageIO.read(Main.class.getResourceAsStream("/Textures/icon128.png")),
@@ -63,7 +66,7 @@ public class Main extends SimpleApplication {
                 ImageIO.read(Main.class.getResourceAsStream("/Textures/icon16.png"))
             });
         } catch (IOException e) {
-System.out.println(e.toString());
+            System.out.println(e.toString());
         }
         app.setSettings(settings);
         app.start();
@@ -71,7 +74,8 @@ System.out.println(e.toString());
 
     @Override
     public void simpleInitApp() {
-       
+        addedBlocks = new ArrayList<Geometry>();
+        addedAnchors = new ArrayList<Geometry>();
 
         /**
          * Set up Physics
@@ -141,12 +145,14 @@ System.out.println(e.toString());
 
         Box box = new Box(0.5f, 0.5f, 0.5f);
 
-        Geometry gm8 = new Geometry("Box", box);
-        gm8.setLocalTranslation(a);
-        gm8.setMaterial(mat);
+        Geometry geom = new Geometry("Anchor" + (addedAnchors.size() - 1), box);
+        geom.setLocalTranslation(a);
+        geom.setMaterial(mat);
 
-        gm8.setUserData("type", 0);
-        anchorPoints.attachChild(gm8);
+
+        geom.setUserData("type", 0);
+        anchorPoints.attachChild(geom);
+        addedAnchors.add(geom);
     }
 
     private void addTargetPoint(Vector3f a) {
@@ -156,12 +162,12 @@ System.out.println(e.toString());
 
         Box box = new Box(0.51f, 0.51f, 0.51f);
 
-        Geometry gm8 = new Geometry("Box", box);
-        gm8.setLocalTranslation(a);
-        gm8.setMaterial(mat);
+        Geometry geom = new Geometry("Target", box);
+        geom.setLocalTranslation(a);
+        geom.setMaterial(mat);
 
-        gm8.setUserData("type", 1);
-        targetPoints.attachChild(gm8);
+        geom.setUserData("type", 1);
+        targetPoints.attachChild(geom);
     }
 
     private void addBuildingBlock(Vector3f from, Vector3f to) {
@@ -179,15 +185,13 @@ System.out.println(e.toString());
             box = new Box(0.25f, 2.5f, 0.25f);
         }
 
-        Geometry gm8 = new Geometry("Box", box);
-        gm8.setLocalTranslation(new Vector3f((from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2));
-        gm8.setMaterial(mat);
+        Geometry geom = new Geometry("Block" + (addedBlocks.size() - 1), box);
+        geom.setLocalTranslation(new Vector3f((from.x + to.x) / 2, (from.y + to.y) / 2, (from.z + to.z) / 2));
+        geom.setMaterial(mat);
 
-        gm8.setUserData("type", 2);
-        buildingBlocks.attachChild(gm8);
-
-        System.out.println(from.toString());
-        System.out.println(to.toString());
+        geom.setUserData("type", 2);
+        buildingBlocks.attachChild(geom);
+        addedBlocks.add(geom);
     }
 
     @Override
@@ -237,6 +241,7 @@ System.out.println(e.toString());
         inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("KeyQ", new KeyTrigger(KeyInput.KEY_Q));
         inputManager.addMapping("KeyZ", new KeyTrigger(KeyInput.KEY_Z));
+        inputManager.addMapping("KeyR", new KeyTrigger(KeyInput.KEY_R));
         inputManager.addMapping("Key1", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("Key2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addListener(actionListener, "Left");
@@ -245,6 +250,7 @@ System.out.println(e.toString());
         inputManager.addListener(actionListener, "Down");
         inputManager.addListener(actionListener, "KeyQ");
         inputManager.addListener(actionListener, "KeyZ");
+        inputManager.addListener(actionListener, "KeyR");
         inputManager.addListener(actionListener, "Key1");
         inputManager.addListener(actionListener, "Key2");
     }
@@ -288,6 +294,17 @@ System.out.println(e.toString());
                     keyz = true;
                 } else {
                     keyz = false;
+                }
+            }
+            if (name.equals("KeyR")) {
+                if (!keyPressed && addedBlocks.size() != 0) {
+                    Geometry g = addedBlocks.get(addedBlocks.size() - 1);
+                    addedBlocks.remove(g);
+                    buildingBlocks.detachChild(g);
+
+                    g = addedAnchors.get(addedAnchors.size() - 1);
+                    addedAnchors.remove(g);
+                    anchorPoints.detachChild(g);
                 }
             }
             if (name.equals("Key1")) {
@@ -339,7 +356,7 @@ System.out.println(e.toString());
                             addTargetPoint(new Vector3f(translation.x - 5, translation.y, translation.z));
                             addTargetPoint(new Vector3f(translation.x, translation.y, translation.z - 5));
                             break;
-                        case 1: // target
+                        case 1: // target                            
                             addAnchorPoint(geometry.getLocalTranslation());
                             addBuildingBlock(prevClickedGeometry.getLocalTransform().getTranslation(),
                                     geometry.getLocalTransform().getTranslation());
