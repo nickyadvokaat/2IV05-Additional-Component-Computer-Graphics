@@ -27,7 +27,6 @@ import com.jme3.scene.shape.Sphere;
 import com.jme3.system.AppSettings;
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 
-
 /**
  * test
  *
@@ -44,8 +43,7 @@ public class Main extends SimpleApplication {
     private RigidBodyControl landscape;
     private CharacterControl player;
     private Vector3f walkDirection = new Vector3f();
-    private boolean left = false, right = false, up = false, down = false;
-    
+    private boolean left = false, right = false, up = false, down = false, keyq = false, keyz = false;
 
     public static void main(String[] args) {
         Main app = new Main();
@@ -174,6 +172,7 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
+        Vector3f upDir = new Vector3f(0, 1, 0);
         Vector3f camDir = cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = cam.getLeft().clone().multLocal(0.4f);
         walkDirection.set(0, 0, 0);
@@ -188,6 +187,12 @@ public class Main extends SimpleApplication {
         }
         if (down) {
             walkDirection.addLocal(camDir.negate());
+        }
+        if (keyq) {
+            walkDirection.addLocal(upDir);
+        }
+        if (keyz) {
+            walkDirection.addLocal(upDir.negate());
         }
         player.setWalkDirection(walkDirection);
         cam.setLocation(player.getPhysicsLocation());
@@ -207,17 +212,18 @@ public class Main extends SimpleApplication {
                 new MouseButtonTrigger(MouseInput.BUTTON_LEFT)); // trigger 2: left-button click
         inputManager.addListener(actionListener, "Click");
         inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_A));
-    inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-    inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
-    inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
-    inputManager.addListener(actionListener, "Left");
-    inputManager.addListener(actionListener, "Right");
-    inputManager.addListener(actionListener, "Up");
-    inputManager.addListener(actionListener, "Down");
+        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
+        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping("KeyQ", new KeyTrigger(KeyInput.KEY_Q));
+        inputManager.addMapping("KeyZ", new KeyTrigger(KeyInput.KEY_Z));
+        inputManager.addListener(actionListener, "Left");
+        inputManager.addListener(actionListener, "Right");
+        inputManager.addListener(actionListener, "Up");
+        inputManager.addListener(actionListener, "Down");
+        inputManager.addListener(actionListener, "KeyQ");
+        inputManager.addListener(actionListener, "KeyZ");
     }
-    
-    
- 
     /**
      * Click object
      */
@@ -247,82 +253,91 @@ public class Main extends SimpleApplication {
                 } else {
                     down = false;
                 }
+            } else if (name.equals("KeyQ")) {
+                if (keyPressed) {
+                    keyq = true;
+                } else {
+                    keyq = false;
+                }
+            } else if (name.equals("KeyZ")) {
+                if (keyPressed) {
+                    keyz = true;
+                } else {
+                    keyz = false;
+                }
             }
-                if (name.equals("Click") && !keyPressed) {
-                    // 1. Reset results list.
-                    CollisionResults results = new CollisionResults();
-                    // 2. Aim the ray from cam loc to cam direction.
-                    Ray ray = new Ray(cam.getLocation(), cam.getDirection());
-                    // 3. Collect intersections between Ray and Anchorpoints in results list.
-                    clickable.collideWith(ray, results);
-                    // 4. Use the results 
-                    // reset color
-                    Material mat = new Material(assetManager,
-                            "Common/MatDefs/Misc/Unshaded.j3md");
-                    mat.setColor("Color", ColorRGBA.Gray);
-                    anchorPoints.setMaterial(mat);
+            if (name.equals("Click") && !keyPressed) {
+                // 1. Reset results list.
+                CollisionResults results = new CollisionResults();
+                // 2. Aim the ray from cam loc to cam direction.
+                Ray ray = new Ray(cam.getLocation(), cam.getDirection());
+                // 3. Collect intersections between Ray and Anchorpoints in results list.
+                clickable.collideWith(ray, results);
+                // 4. Use the results 
+                // reset color
+                Material mat = new Material(assetManager,
+                        "Common/MatDefs/Misc/Unshaded.j3md");
+                mat.setColor("Color", ColorRGBA.Gray);
+                anchorPoints.setMaterial(mat);
 
-                    // apply new
-                    if (results.size() > 0) {
-                        // The closest collision point is what was truly hit:
-                        CollisionResult closest = results.getClosestCollision();
-                        Geometry geometry = closest.getGeometry();
+                // apply new
+                if (results.size() > 0) {
+                    // The closest collision point is what was truly hit:
+                    CollisionResult closest = results.getClosestCollision();
+                    Geometry geometry = closest.getGeometry();
 
-                        switch ((Integer) (geometry.getUserData("type"))) {
-                            case 0: // anchor
-                                // reset target
-                                targetPoints.detachAllChildren();
+                    switch ((Integer) (geometry.getUserData("type"))) {
+                        case 0: // anchor
+                            // reset target
+                            targetPoints.detachAllChildren();
 
-                                Material mat2 = new Material(assetManager,
-                                        "Common/MatDefs/Misc/Unshaded.j3md");
-                                mat2.setColor("Color", ColorRGBA.Red);
-                                geometry.setMaterial(mat2);
+                            Material mat2 = new Material(assetManager,
+                                    "Common/MatDefs/Misc/Unshaded.j3md");
+                            mat2.setColor("Color", ColorRGBA.Red);
+                            geometry.setMaterial(mat2);
 
-                                prevClickedGeometry = geometry;
+                            prevClickedGeometry = geometry;
 
-                                Vector3f translation = closest.getGeometry().getLocalTransform().getTranslation();
+                            Vector3f translation = closest.getGeometry().getLocalTransform().getTranslation();
 
-                                addTargetPoint(new Vector3f(translation.x, translation.y + 5, translation.z));
-                                addTargetPoint(new Vector3f(translation.x, translation.y - 5, translation.z));
-                                addTargetPoint(new Vector3f(translation.x + 5, translation.y, translation.z));
-                                addTargetPoint(new Vector3f(translation.x, translation.y, translation.z + 5));
-                                addTargetPoint(new Vector3f(translation.x - 5, translation.y, translation.z));
-                                addTargetPoint(new Vector3f(translation.x, translation.y, translation.z - 5));
-                                break;
-                            case 1: // target
-                                addAnchorPoint(geometry.getLocalTranslation());
-                                addBuildingBlock(prevClickedGeometry.getLocalTransform().getTranslation(),
-                                        geometry.getLocalTransform().getTranslation());
-                                // reset target
-                                targetPoints.detachAllChildren();
-                                break;
-                            case 2: // building block
-                                break;
+                            addTargetPoint(new Vector3f(translation.x, translation.y + 5, translation.z));
+                            addTargetPoint(new Vector3f(translation.x, translation.y - 5, translation.z));
+                            addTargetPoint(new Vector3f(translation.x + 5, translation.y, translation.z));
+                            addTargetPoint(new Vector3f(translation.x, translation.y, translation.z + 5));
+                            addTargetPoint(new Vector3f(translation.x - 5, translation.y, translation.z));
+                            addTargetPoint(new Vector3f(translation.x, translation.y, translation.z - 5));
+                            break;
+                        case 1: // target
+                            addAnchorPoint(geometry.getLocalTranslation());
+                            addBuildingBlock(prevClickedGeometry.getLocalTransform().getTranslation(),
+                                    geometry.getLocalTransform().getTranslation());
+                            // reset target
+                            targetPoints.detachAllChildren();
+                            break;
+                        case 2: // building block
+                            break;
 
-                        }
-                    } else {
-
-                        // reset target
-                        targetPoints.detachAllChildren();
                     }
+                } else {
+
+                    // reset target
+                    targetPoints.detachAllChildren();
                 }
             }
         }
-
-        ;
+    };
 
     /**
      * A centred plus sign to help the player aim.
      */
     protected void initCrossHairs() {
-            setDisplayStatView(false);
-            guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
-            BitmapText ch = new BitmapText(guiFont, false);
-            ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
-            ch.setText("+"); // crosshairs
-            ch.setLocalTranslation( // center
-                    settings.getWidth() / 2 - ch.getLineWidth() / 2, settings.getHeight() / 2 + ch.getLineHeight() / 2, 0);
-            guiNode.attachChild(ch);
-        }
+        setDisplayStatView(false);
+        guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+        BitmapText ch = new BitmapText(guiFont, false);
+        ch.setSize(guiFont.getCharSet().getRenderedSize() * 2);
+        ch.setText("+"); // crosshairs
+        ch.setLocalTranslation( // center
+                settings.getWidth() / 2 - ch.getLineWidth() / 2, settings.getHeight() / 2 + ch.getLineHeight() / 2, 0);
+        guiNode.attachChild(ch);
     }
-            
+}
