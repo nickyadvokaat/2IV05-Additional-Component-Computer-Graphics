@@ -1,9 +1,9 @@
 \section{Solution}
-In this section we will describe the solutions to the problems. This are the problems we will have to deal with: The physics of the bridge builder, the collapsing of the bridge and  the interface of the bridge builder.
+In this section we will describe the solutions to the problems. These are the problems we will have to deal with: The physics of the bridge builder, the collapsing of the bridge and  the interface of the bridge builder.
 \subsection{Physics}
-We will use the physics engine in JMonkeyengine to keep track of the weight, gravity, location and maybe tractive force of each building blocks. This will make it easier to write an algorithm that decides when the bridge will break that also depends on the connections between the building blocks. We will try for each building blocks what mass and tractive force is most realistic and we will have to find a realistic weight for the train. 
+We will use the physics engine JBullet to keep track of the weight, gravity, location and maybe tractive force of each building blocks. This will make it easier to write an algorithm that decides when the bridge will break that also depends on the connections between the building blocks. We will try different values for each building block to determine which mass and tractive force are most realistic and we will have to find a realistic weight for the train. 
 \subsection{Collapsing of the Bridge}
-JMonkeyEnginge handles collisions between building blocks by looking at the weight and gravity on each building block and this will result in a realistic collapsing bridge. However we still have to compute whether a building block breaks and we still have to visualize some special effects like smoke or fire.
+JBullet handles collisions between building blocks by looking at the weight and gravity on each building block and this will result in a realistic collapsing bridge. However we still have to compute whether a building block breaks and we still have to visualize some special effects like smoke or fire.
 \subsection{Interface}
 We decided to keep the interface very simple. The current interface looks like \ref{fig:gui}. In this interface only 2 building blocks are available, but we hope to get some more. There are some simple buttons. The two building blocks, the undo button and the play button for letting the train ride over the bridge. By pressing the letter matched to the button, will result in that action too.
 \begin{figure}[H]
