@@ -13,13 +13,17 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
@@ -31,6 +35,10 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
+import mygame.TrainTrack;
+import mygame.roadSign;
+import train.staticTrain;
+import train.openCylinder;
 
 /**
  * test
@@ -52,7 +60,18 @@ public class Main extends SimpleApplication {
     private int building_mode = 0;
     private ArrayList<Geometry> addedBlocks;
     private ArrayList<Geometry> addedAnchors;
-
+    private TrainTrack track;
+    private roadSign roadSign;
+    private staticTrain sTrain;
+    private Node trackNode;
+    private Node train;
+    private Node wheels;
+    private boolean play = false;
+    private int speedtrain = 0;
+    Material matWood ;
+    Material matRail;
+    Material matBoard;
+    Material mat;
     public static void main(String[] args) {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
@@ -74,9 +93,34 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        sTrain = new staticTrain();
+        train = new Node();
+        trackNode = new Node();
+        track = new TrainTrack();
+        roadSign = new roadSign();
         addedBlocks = new ArrayList<Geometry>();
         addedAnchors = new ArrayList<Geometry>();
-
+        matWood = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matWood.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/wood.png"));
+        matRail = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matRail.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/metal.jpg"));
+        matBoard = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matBoard.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/roadsign.png"));
+        mat = new Material(assetManager,
+                "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.DarkGray);
+        trackNode.attachChild(track.getTrack(20, matWood, matRail));
+        trackNode.attachChild(roadSign.getSign(matBoard, matRail));
+        trackNode.setLocalTranslation(0.0f, 0.0f, 30);
+        wheels = sTrain.getWheelsCyl(mat, 0);
+        train.attachChild(sTrain.getSign(matRail, mat));
+        train.attachChild(wheels);
+        train.scale(0.7f);
+        train.setLocalTranslation(2.0f, 2.0f, 80 - speedtrain);
+        train.rotate(0, 180 * FastMath.DEG_TO_RAD,0);
         /**
          * Set up Physics
          */
@@ -117,7 +161,8 @@ public class Main extends SimpleApplication {
 
         clickable = new Node("Clickable");
         rootNode.attachChild(clickable);
-
+        rootNode.attachChild(trackNode);
+        rootNode.attachChild(train);
         anchorPoints = new Node("AnchorPoints");
         clickable.attachChild(anchorPoints);
         targetPoints = new Node("TargetPoints");
@@ -199,6 +244,8 @@ public class Main extends SimpleApplication {
         Vector3f upDir = new Vector3f(0, 1, 0);
         Vector3f camDir = cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = cam.getLeft().clone().multLocal(0.4f);
+        if(play){updateTrain();}
+ 
         walkDirection.set(0, 0, 0);
         if (left) {
             walkDirection.addLocal(camLeft);
@@ -227,6 +274,12 @@ public class Main extends SimpleApplication {
         //TODO: add render code
     }
 
+    public void updateTrain(){
+        wheels = sTrain.getWheelsCyl(mat, speedtrain*5);
+        train.setLocalTranslation(2.0f, 2.0f, 80- (speedtrain/20));
+        speedtrain ++;
+        
+    }
     /**
      * Declaring the "Shoot" action and mapping to its triggers.
      */
@@ -244,6 +297,7 @@ public class Main extends SimpleApplication {
         inputManager.addMapping("KeyR", new KeyTrigger(KeyInput.KEY_R));
         inputManager.addMapping("Key1", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("Key2", new KeyTrigger(KeyInput.KEY_2));
+        inputManager.addMapping("KeyP", new KeyTrigger(KeyInput.KEY_P));
         inputManager.addListener(actionListener, "Left");
         inputManager.addListener(actionListener, "Right");
         inputManager.addListener(actionListener, "Up");
@@ -253,6 +307,7 @@ public class Main extends SimpleApplication {
         inputManager.addListener(actionListener, "KeyR");
         inputManager.addListener(actionListener, "Key1");
         inputManager.addListener(actionListener, "Key2");
+        inputManager.addListener(actionListener, "KeyP");
     }
     /**
      * Click object
@@ -295,9 +350,17 @@ public class Main extends SimpleApplication {
                 } else {
                     keyz = false;
                 }
+            } 
+             if (name.equals("KeyP")) {
+                play = true;
+                trackNode.detachAllChildren();
+                trackNode.attachChild(track.getTrack(100, matWood, matRail));
+                trackNode.setLocalTranslation(0.0f,0,-100);
+
             }
             if (name.equals("KeyR")) {
                 if (!keyPressed && addedBlocks.size() != 0) {
+
                     Geometry g = addedBlocks.get(addedBlocks.size() - 1);
                     addedBlocks.remove(g);
                     buildingBlocks.detachChild(g);
