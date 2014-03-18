@@ -72,6 +72,9 @@ public class Main extends SimpleApplication {
     Material matRail;
     Material matBoard;
     Material mat;
+    Material matTrain;
+    Material matTrain2;
+    Material matTrain3;
     public static void main(String[] args) {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
@@ -106,17 +109,26 @@ public class Main extends SimpleApplication {
         matRail = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matRail.setTexture("ColorMap",
                 assetManager.loadTexture("Textures/metal.jpg"));
+        matTrain = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matTrain.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/bmetal.jpg"));
+        matTrain2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matTrain2.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/rmetal.jpg"));
         matBoard = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matBoard.setTexture("ColorMap",
                 assetManager.loadTexture("Textures/roadsign.png"));
         mat = new Material(assetManager,
                 "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.DarkGray);
+        mat.setColor("Color", new ColorRGBA(0.15f, 0.1f, 0.12f, 10.0f));
+        matTrain3 = new Material(assetManager,
+                "Common/MatDefs/Misc/Unshaded.j3md");
+        matTrain3.setColor("Color", ColorRGBA.Brown);
         trackNode.attachChild(track.getTrack(20, matWood, matRail));
         trackNode.attachChild(roadSign.getSign(matBoard, matRail));
         trackNode.setLocalTranslation(0.0f, 0.0f, 30);
-        wheels = sTrain.getWheelsCyl(mat, 0);
-        train.attachChild(sTrain.getSign(matRail, mat));
+        wheels = sTrain.getWheelsCyl(matTrain2, 0);
+        train.attachChild(sTrain.getSign(matTrain, matTrain2,mat));
         train.attachChild(wheels);
         train.scale(0.7f);
         train.setLocalTranslation(2.0f, 2.0f, 80 - speedtrain);
@@ -275,7 +287,10 @@ public class Main extends SimpleApplication {
     }
 
     public void updateTrain(){
-        wheels = sTrain.getWheelsCyl(mat, speedtrain*5);
+          train.detachChild(wheels);
+          wheels = new Node();
+          wheels = sTrain.getWheelsCyl(matTrain2, speedtrain);
+          train.attachChild(wheels);
         train.setLocalTranslation(2.0f, 2.0f, 80- (speedtrain/20));
         speedtrain ++;
         
