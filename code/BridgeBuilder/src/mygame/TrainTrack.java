@@ -25,13 +25,13 @@ public class TrainTrack {
         for (int i = 0; i < x; i++) {
             track = addWood(track, mat1, i);
         }
-        track = addRail(track,mat2,x, 3.75f);
-        track = addRail(track,mat2,x,0.25f);
+        track = addRail(track,mat2,x, 3.8f);
+        track = addRail(track,mat2,x,0.2f);
         return track;
     }
 
     public Node addWood(Node x, Material mat, int i) {
-        box1 = new Box(3, 0.25f,0.5f);
+        box1 = new Box(3, 0.25f,1.5f);
         Wood = new Geometry("Box", box1);
         Wood.setLocalTranslation(new Vector3f(2, 0, 3*i));
         Wood.setMaterial(mat);

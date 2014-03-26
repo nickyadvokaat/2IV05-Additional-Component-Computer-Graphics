@@ -17,17 +17,14 @@ import com.jme3.scene.shape.Cylinder;
  *
  * @author s107200
  */
-public class staticTrain {
+public class StaticTrainNew {
 
-    Node staticTrain;
     Geometry Plate;
     Box box1;
     Cylinder cyl;
-    openCylinder o = new openCylinder();
     Mesh mesh = new Mesh();
 
-    public Node getSign(Material mat1, Material mat2, Material mat3) {
-        staticTrain = new Node();
+    public Node getSign(Node staticTrain, Material mat1, Material mat2, Material mat3) {
         staticTrain = addBasicPlate(staticTrain, mat2);
         staticTrain = addBasicPlateCylFront(staticTrain, mat1, 1.5f);
         staticTrain = addBasicPlateCylFront(staticTrain, mat1, -1.5f);
@@ -77,17 +74,6 @@ public class staticTrain {
         }
         return staticTrain;
 
-    }
-
-    public Node getWheelsCyl(Material mat2, int rad) {
-        Node wheels = new Node();
-        wheels = addWheelCyl2(wheels, mat2, 0 + rad);
-        wheels = addWheelCyl2(wheels, mat2, 30 + rad);
-        wheels = addWheelCyl2(wheels, mat2, 60 + rad);
-        wheels = addWheelCyl2(wheels, mat2, 120 + rad);
-        wheels = addWheelCyl2(wheels, mat2, 150 + rad);
-        wheels = addWheelCyl2(wheels, mat2, 90 + rad);
-        return wheels;
     }
 
     public Node addBasicPlate(Node x, Material mat) {
@@ -278,112 +264,5 @@ public class staticTrain {
         return x;
     }
 
-    public Node addWheel(Node x, Material mat) {
-        mesh = new Mesh();
-        mesh = o.getCylinder(1.5f, 0.9f, 0.25f, 150);
-        Geometry geo = new Geometry("OurMesh", mesh); // using our custom mesh object
-        Geometry geo1 = new Geometry("OurMesh", mesh); // using our custom mesh object
-        Geometry geo2 = new Geometry("OurMesh", mesh); // using our custom mesh object
-        Geometry geo3 = new Geometry("OurMesh", mesh); // using our custom mesh object
-        mesh = o.getCylinder(3.0f, 2.2f, 0.25f, 150);
-        Geometry geo4 = new Geometry("OurMesh", mesh); // using our custom mesh object
-        Geometry geo5 = new Geometry("OurMesh", mesh); // using our custom mesh object
-        geo.setMaterial(mat);
-        geo1.setMaterial(mat);
-        geo2.setMaterial(mat);
-        geo3.setMaterial(mat);
-        geo4.setMaterial(mat);
-        geo5.setMaterial(mat);
-        geo.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo1.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo2.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo3.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo4.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo5.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo.setLocalTranslation(3.5f, -0.5f, 8.5f);
-        geo1.setLocalTranslation(3.5f, -0.5f, 5.0f);
-        geo2.setLocalTranslation(-3.75f, -0.5f, 8.5f);
-        geo3.setLocalTranslation(-3.75f, -0.5f, 5.0f);
-        geo4.setLocalTranslation(3.5f, 0.5f, -3.0f);
-        geo5.setLocalTranslation(-3.75f, 0.5f, -3.0f);
-        x.attachChild(geo);
-        x.attachChild(geo1);
-        x.attachChild(geo2);
-        x.attachChild(geo3);
-        x.attachChild(geo4);
-        x.attachChild(geo5);
-        return x;
-    }
 
-    public Node addWheelCyl(Node x, Material mat) {
-        cyl = new Cylinder(20, 20, 0.2f, 0.5f, true);
-        Geometry geo = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo1 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo2 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo3 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        cyl = new Cylinder(20, 20, 0.5f, 0.5f, true);
-        Geometry geo4 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo5 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        geo.setMaterial(mat);
-        geo1.setMaterial(mat);
-        geo2.setMaterial(mat);
-        geo3.setMaterial(mat);
-        geo4.setMaterial(mat);
-        geo5.setMaterial(mat);
-        geo.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo1.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo2.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo3.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo4.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo5.rotate(0f, 90 * FastMath.DEG_TO_RAD, 0f);
-        geo.setLocalTranslation(3.5f, -0.5f, 8.5f);
-        geo1.setLocalTranslation(3.5f, -0.5f, 5.0f);
-        geo2.setLocalTranslation(-3.75f, -0.5f, 8.5f);
-        geo3.setLocalTranslation(-3.75f, -0.5f, 5.0f);
-        geo4.setLocalTranslation(3.5f, 0.5f, -3.0f);
-        geo5.setLocalTranslation(-3.75f, 0.5f, -3.0f);
-        x.attachChild(geo);
-        x.attachChild(geo1);
-        x.attachChild(geo2);
-        x.attachChild(geo3);
-        x.attachChild(geo4);
-        x.attachChild(geo5);
-        return x;
-    }
-
-    public Node addWheelCyl2(Node x, Material mat, int rad) {
-        cyl = new Cylinder(20, 20, 0.075f, 2.0f, true);
-        Geometry geo = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo1 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo2 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo3 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        cyl = new Cylinder(20, 20, 0.15f, 5.0f, true);
-        Geometry geo4 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        Geometry geo5 = new Geometry("OurMesh", cyl); // using our custom mesh object
-        geo.setMaterial(mat);
-        geo1.setMaterial(mat);
-        geo2.setMaterial(mat);
-        geo3.setMaterial(mat);
-        geo4.setMaterial(mat);
-        geo5.setMaterial(mat);
-        geo.rotate(rad * FastMath.DEG_TO_RAD, 0f, 0f);
-        geo1.rotate(rad * FastMath.DEG_TO_RAD, 0f, 0f);
-        geo2.rotate(rad * FastMath.DEG_TO_RAD, 0f, 0f);
-        geo3.rotate(rad * FastMath.DEG_TO_RAD, 0f, 0f);
-        geo4.rotate(rad * FastMath.DEG_TO_RAD, 0f, 0f);
-        geo5.rotate(rad * FastMath.DEG_TO_RAD, 0f, 0f);
-        geo.setLocalTranslation(3.5f, -0.5f, 8.5f);
-        geo1.setLocalTranslation(3.5f, -0.5f, 5.0f);
-        geo2.setLocalTranslation(-3.75f, -0.5f, 8.5f);
-        geo3.setLocalTranslation(-3.75f, -0.5f, 5.0f);
-        geo4.setLocalTranslation(3.5f, 0.5f, -3.0f);
-        geo5.setLocalTranslation(-3.5f, 0.5f, -3.0f);
-        x.attachChild(geo);
-        x.attachChild(geo1);
-        x.attachChild(geo2);
-        x.attachChild(geo3);
-        x.attachChild(geo4);
-        x.attachChild(geo5);
-        return x;
-    }
 }

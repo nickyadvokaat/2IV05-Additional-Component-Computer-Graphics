@@ -19,7 +19,7 @@ public class openCylinder {
     
     public Mesh getCylinder(float f1, float f2, float f3, int i){
         Mesh m = new Mesh();
-        Vector3f [] vertices = new Vector3f[4*(i+1)];
+        Vector3f [] vertices = new Vector3f[4*i];
         float rate = FastMath.TWO_PI / i;
         float angle = 0;
         for (int j = 0; j < i; j++)
@@ -38,11 +38,9 @@ public class openCylinder {
         return m;
     }
     
- 
-    
     public int[] getIndexes(int i){
         int p = 0;
-        int[] indexes = new int[24*i];
+        int[] indexes = new int[24*i+3];
         
         for(int j = 0; j < i;j++){
             indexes[p+0] = j;
@@ -93,7 +91,9 @@ public class openCylinder {
             indexes[p+2] = j+2*i-1;
             p = p+3;
         }
-       
+        indexes[p] = 2*i-1;
+        indexes[p+1]=i;
+        indexes[p+2]=3*i-1;
         return indexes;
     }
 }

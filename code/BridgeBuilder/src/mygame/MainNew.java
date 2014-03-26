@@ -43,9 +43,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import train.staticTrain;
+import com.jme3.bullet.debug.*;
+import train.StaticTrainNew;
 
 public class MainNew extends SimpleApplication {
-    
+
     public static void main(String args[]) {
         MainNew app = new MainNew();
         AppSettings settings = new AppSettings(true);
@@ -94,6 +96,11 @@ public class MainNew extends SimpleApplication {
     private Node barsNode;
     private Node targetsNode;
     private Node trackNode;
+    private Node trackNode2;
+    private Node trackNode3;
+    private Node trackNode5;
+    private Node trackNode6;
+    private Node trackNode4;
     private Node train;
     private Node wheels;
     private Geometry prevClickedGeometry;
@@ -116,7 +123,13 @@ public class MainNew extends SimpleApplication {
     private Picture pic_undo;
     private Picture pic_start;
     private Picture pic_cable;
-    
+    private VehicleControl vehicle;
+    private final float accelerationForce = 1000.0f;
+    private final float brakeForce = 50.0f;
+    private float steeringValue = 0;
+    private float accelerationValue = 10.0f;
+    private Vector3f jumpForce = new Vector3f(0, 3000, 0);
+
     static {
         // Initialize the cannon ball geometry        
         sphere = new Sphere(32, 32, 0.4f, true, false);
@@ -125,7 +138,7 @@ public class MainNew extends SimpleApplication {
         // Initialize the connection geometry 
         connection = new Box(0.5f, 0.5f, 0.5f);
         connection.scaleTextureCoordinates(new Vector2f(1f, .5f));
-        
+
         float w = 0.5f;
         // Initialize the bar in x direction geometry 
         barX = new Box(2f, w, w);
@@ -139,10 +152,13 @@ public class MainNew extends SimpleApplication {
         barZ = new Box(w, w, 2);
         barZ.scaleTextureCoordinates(new Vector2f(1f, .5f));
     }
-    
+
     @Override
     public void simpleInitApp() {
-        // Set up nodes
+        // Set up nodesdebugNode = BulletDebugNode('Debug')
+        DebugTools debugNode;
+        debugNode = new DebugTools(assetManager);
+        debugNode.show(renderManager, viewPort);
         clickablesNode = new Node("clickablesNode");
         rootNode.attachChild(clickablesNode);
         connectionsNode = new Node("connectionsNode");
@@ -172,7 +188,7 @@ public class MainNew extends SimpleApplication {
             lodControlCamera.setCamera(getCamera());
         }
         terrainCamera.addControl(new RigidBodyControl(0));
-        
+
         Spatial terrainGame = assetManager.loadModel("Scenes/Level1.j3o");
         rootNode.attachChild(terrainGame);
         TerrainLodControl lodControlGame = ((Node) terrainGame).getControl(TerrainLodControl.class);
@@ -187,65 +203,75 @@ public class MainNew extends SimpleApplication {
         player.setFallSpeed(0);
         player.setGravity(0);
         player.setPhysicsLocation(new Vector3f(-10, 10, 10));
-        
+
         bulletAppStateCamera = new BulletAppState();
         stateManager.attach(bulletAppStateCamera);
         bulletAppStateCamera.getPhysicsSpace().add(terrainCamera);
         bulletAppStateCamera.getPhysicsSpace().add(player);
-        
         bulletAppStateGame.getPhysicsSpace().add(terrainGame);
-        
+
         initKeys();
         initMaterials();
         initCrossHairs();
         initGroundConnections();
         initHUD();
+        initTrack();
 
-        //initTrain();
+//        initTrain();
         //rootNode.attachChild(trackNode);
         //rootNode.attachChild(train);
 
         buildPlayer();
     }
-    
-    private void initTrain() {
-        sTrain = new staticTrain();
-        train = new Node();
-        trackNode = new Node();
-        track = new TrainTrack();
-        roadSign = new roadSign();
+
+    private void initTrack() {
         matWood = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matWood.setTexture("ColorMap",
                 assetManager.loadTexture("Textures/wood.png"));
         matRail = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matRail.setTexture("ColorMap",
                 assetManager.loadTexture("Textures/metal.jpg"));
-        matTrain = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        matTrain.setTexture("ColorMap",
-                assetManager.loadTexture("Textures/bmetal.jpg"));
-        matTrain2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        matTrain2.setTexture("ColorMap",
-                assetManager.loadTexture("Textures/rmetal.jpg"));
-        matBoard = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        matBoard.setTexture("ColorMap",
-                assetManager.loadTexture("Textures/roadsign.png"));
-        mat = new Material(assetManager,
-                "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", new ColorRGBA(0.15f, 0.1f, 0.12f, 10.0f));
-        matTrain3 = new Material(assetManager,
-                "Common/MatDefs/Misc/Unshaded.j3md");
-        matTrain3.setColor("Color", ColorRGBA.Brown);
-        trackNode.attachChild(track.getTrack(20, matWood, matRail));
-        trackNode.attachChild(roadSign.getSign(matBoard, matRail));
-        trackNode.setLocalTranslation(0.0f, 0.0f, 30);
-        wheels = sTrain.getWheelsCyl(matTrain2, 0);
-        train.attachChild(sTrain.getSign(matTrain, matTrain2, mat));
-        train.attachChild(wheels);
-        train.scale(0.7f);
-        train.setLocalTranslation(2.0f, 2.0f, 80 - speedtrain);
-        train.rotate(0, 180 * FastMath.DEG_TO_RAD, 0);
+        track = new TrainTrack();
+        trackNode = new Node();
+        trackNode2 = new Node();
+        trackNode3 = new Node();
+        trackNode.attachChild(track.getTrack(3, matWood, matRail));
+        trackNode.setLocalTranslation(0,2,-15);
+        trackNode.addControl(new RigidBodyControl(3));
+        bulletAppStateGame.getPhysicsSpace().add(trackNode);
+        trackNode2.attachChild(track.getTrack(3, matWood, matRail));
+        trackNode2.setLocalTranslation(0,2,3f);
+        trackNode2.addControl(new RigidBodyControl(3));
+        bulletAppStateGame.getPhysicsSpace().add(trackNode2);
+        trackNode3.attachChild(track.getTrack(3, matWood, matRail));
+        trackNode3.setLocalTranslation(0,2,-6f);
+        trackNode3.addControl(new RigidBodyControl(3));
+        bulletAppStateGame.getPhysicsSpace().add(trackNode3);
+        rootNode.attachChild(trackNode);
+        rootNode.attachChild(trackNode2);
+        rootNode.attachChild(trackNode3);
+        trackNode4= new Node();
+        trackNode5 = new Node();
+        trackNode6 = new Node();
+        trackNode4.attachChild(track.getTrack(3, matWood, matRail));
+        trackNode4.setLocalTranslation(0,2,12);
+        trackNode4.addControl(new RigidBodyControl(3));
+        bulletAppStateGame.getPhysicsSpace().add(trackNode4);
+        trackNode5.attachChild(track.getTrack(3, matWood, matRail));
+        trackNode5.setLocalTranslation(0,2,21f);
+        trackNode5.addControl(new RigidBodyControl(3));
+        bulletAppStateGame.getPhysicsSpace().add(trackNode5);
+        trackNode6.attachChild(track.getTrack(3, matWood, matRail));
+        trackNode6.setLocalTranslation(0,2,30f);
+        trackNode6.addControl(new RigidBodyControl(3));
+        bulletAppStateGame.getPhysicsSpace().add(trackNode6);
+        rootNode.attachChild(trackNode4);
+        rootNode.attachChild(trackNode5);
+        rootNode.attachChild(trackNode6);
+
     }
-    
+
+
     private void initKeys() {
         inputManager.addMapping("Click",
                 new KeyTrigger(KeyInput.KEY_SPACE), // trigger 1: spacebar
@@ -297,7 +323,7 @@ public class MainNew extends SimpleApplication {
                 targetsNode.detachAllChildren();
                 bulletAppStateGame.setSpeed(1);
                 gameStarted = true;
-                
+
             }
             if (name.equals("KeyR")) {
                 //remove previous
@@ -326,7 +352,7 @@ public class MainNew extends SimpleApplication {
                         // The closest collision point is what was truly hit:
                         CollisionResult closest = results.getClosestCollision();
                         Geometry geometry = closest.getGeometry();
-                        
+
                         switch ((Integer) (geometry.getUserData("type"))) {
                             case 0: // ground connection
                             case 1: // connection
@@ -362,7 +388,7 @@ public class MainNew extends SimpleApplication {
                                 break;
                             case 2: // target
                                 addConnection(geometry.getLocalTranslation());
-                                
+
                                 if (prevClickedGeometry.getWorldTranslation().x > connections.get(connections.size() - 1).getWorldTranslation().x
                                         || prevClickedGeometry.getWorldTranslation().y > connections.get(connections.size() - 1).getWorldTranslation().y
                                         || prevClickedGeometry.getWorldTranslation().z > connections.get(connections.size() - 1).getWorldTranslation().z) {
@@ -370,7 +396,7 @@ public class MainNew extends SimpleApplication {
                                 } else {
                                     addBar(prevClickedGeometry, connections.get(connections.size() - 1));
                                 }
-                                
+
                                 resetTarget();
                                 break;
                             case 3: // bar
@@ -384,29 +410,29 @@ public class MainNew extends SimpleApplication {
             }
         }
     };
-    
+
     private void resetTarget() {
         targetsNode.detachAllChildren();
         prevClickedGeometry = null;
     }
-    
+
     private float distance(Vector3f v1, Vector3f v2) {
         return (float) Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2) + Math.pow(v1.z - v2.z, 2));
     }
-    
+
     private void initMaterials() {
         bar_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         TextureKey key = new TextureKey("Textures/rock.jpg");
         key.setGenerateMips(true);
         Texture tex = assetManager.loadTexture(key);
         bar_mat.setTexture("ColorMap", tex);
-        
+
         connection_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         TextureKey key2 = new TextureKey("Textures/metal.jpg");
         key2.setGenerateMips(true);
         Texture tex2 = assetManager.loadTexture(key2);
         connection_mat.setTexture("ColorMap", tex2);
-        
+
         target_mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         TextureKey key3 = new TextureKey("Textures/bmetal.jpg");
         key3.setGenerateMips(true);
@@ -414,7 +440,7 @@ public class MainNew extends SimpleApplication {
         tex3.setWrap(WrapMode.Repeat);
         target_mat.setTexture("ColorMap", tex3);
     }
-    
+
     private void initGroundConnections() {
         int x = 1;
         addGroundConnection(new Vector3f(0, 0 + x, -15));
@@ -426,19 +452,19 @@ public class MainNew extends SimpleApplication {
         addGroundConnection(new Vector3f(0, -15 + x, 10));
         addGroundConnection(new Vector3f(5, -15 + x, 10));
     }
-    
+
     private void addGroundConnection(Vector3f location) {
         Geometry connectionGeometry = new Geometry("connection" + this.connectionNameCounter++, this.connection);
         connectionGeometry.setMaterial(connection_mat);
         connectionGeometry.setLocalTranslation(location);
         connectionGeometry.setUserData("type", 0);
-        
+
         this.connectionsNode.attachChild(connectionGeometry);
-        
+
         RigidBodyControl rbc = new RigidBodyControl(0f);
         connectionGeometry.addControl(rbc);
         this.bulletAppStateGame.getPhysicsSpace().add(rbc);
-        
+
         this.connections.add(connectionGeometry);
 
         // visual
@@ -448,22 +474,22 @@ public class MainNew extends SimpleApplication {
         connectionGeometry2.setUserData("type", 0);
         this.rootNode.attachChild(connectionGeometry2);
     }
-    
+
     private void addConnection(Vector3f location) {
         Geometry connectionGeometry = new Geometry("connection" + this.connectionNameCounter++, this.connection);
         connectionGeometry.setMaterial(connection_mat);
         connectionGeometry.setLocalTranslation(location);
         connectionGeometry.setUserData("type", 1);
-        
+
         this.connectionsNode.attachChild(connectionGeometry);
-        
+
         RigidBodyControl rbc = new RigidBodyControl(1f);
         connectionGeometry.addControl(rbc);
         this.bulletAppStateGame.getPhysicsSpace().add(rbc);
-        
+
         this.connections.add(connectionGeometry);
     }
-    
+
     private void addBar(Geometry connection1, Geometry connection2) {
         Vector3f location = new Vector3f(
                 (connection1.getWorldTranslation().x + connection2.getWorldTranslation().x) / 2,
@@ -481,7 +507,7 @@ public class MainNew extends SimpleApplication {
         } else if (connection1.getWorldTranslation().z != connection2.getWorldTranslation().z) {
             direction = 2;
         }
-        
+
         Box bar = this.barX;
         switch (direction) {
             case 1:
@@ -495,13 +521,13 @@ public class MainNew extends SimpleApplication {
         barGeometry.setMaterial(bar_mat);
         barGeometry.setLocalTranslation(location);
         barGeometry.setUserData("type", 3);
-        
+
         this.barsNode.attachChild(barGeometry);
-        
+
         RigidBodyControl rbc = new RigidBodyControl(4f);
         barGeometry.addControl(rbc);
         this.bulletAppStateGame.getPhysicsSpace().add(rbc);
-        
+
         this.bars.add(barGeometry);
         Vector3f v1 = null;
         Vector3f v2 = null;
@@ -519,7 +545,7 @@ public class MainNew extends SimpleApplication {
                 v2 = new Vector3f(0f, 0.5f, 0f);
                 v3 = new Vector3f(0f, 2f, 0f);
                 v4 = new Vector3f(0f, -0.5f, 0f);
-                
+
                 break;
             case 2:
                 v1 = new Vector3f(0f, 0f, -2f);
@@ -551,19 +577,19 @@ public class MainNew extends SimpleApplication {
         bulletAppStateGame.getPhysicsSpace().add(joint2);
         this.joints.add(joint2);
     }
-    
+
     private void addTarget(Vector3f location) {
         Geometry targetGeometry = new Geometry("target" + this.connectionNameCounter++, this.connection);
         targetGeometry.setMaterial(target_mat);
         //targetGeometry.scale(1.1f);
         targetGeometry.setLocalTranslation(location);
         targetGeometry.setUserData("type", 2);
-        
+
         this.targetsNode.attachChild(targetGeometry);
-        
+
         this.targets.add(targetGeometry);
     }
-    
+
     private void makeCannonBall() {
         // Create a cannon ball geometry and attach to scene graph.
         Geometry ball_geo = new Geometry("cannon ball", sphere);
@@ -579,7 +605,7 @@ public class MainNew extends SimpleApplication {
         // Accelerate the physcial ball to shoot it.
         ball_phy.setLinearVelocity(cam.getDirection().mult(25));
     }
-    
+
     public void updateTrain() {
         train.detachChild(wheels);
         wheels = new Node();
@@ -587,9 +613,9 @@ public class MainNew extends SimpleApplication {
         train.attachChild(wheels);
         train.setLocalTranslation(2.0f, 2.0f, 80 - (speedtrain / 20));
         speedtrain++;
-        
+
     }
-    
+
     private void initCrossHairs() {
         guiNode.detachAllChildren();
         guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
@@ -601,7 +627,7 @@ public class MainNew extends SimpleApplication {
                 settings.getHeight() / 2 + ch.getLineHeight() / 2, 0);
         guiNode.attachChild(ch);
     }
-    
+
     @Override
     public void simpleUpdate(float tpf) {
         checkBreakingJoints();
@@ -609,7 +635,6 @@ public class MainNew extends SimpleApplication {
         if (play) {
             updateTrain();
         }
-        vehicle.accelerate(200.0f);
     }
 
     // if the force on a joints exceeds a certain limit it will break
@@ -617,7 +642,7 @@ public class MainNew extends SimpleApplication {
         ArrayList<HingeJoint> newJoints = new ArrayList<HingeJoint>();
         for (int i = 0; i < this.joints.size(); i++) {
             HingeJoint j = this.joints.get(i);
-            if (j.getAppliedImpulse() > 24) {
+            if (j.getAppliedImpulse() > 50) {
                 bulletAppStateGame.getPhysicsSpace().remove(j);
             } else {
                 newJoints.add(j);
@@ -625,12 +650,12 @@ public class MainNew extends SimpleApplication {
         }
         this.joints = newJoints;
     }
-    
+
     private void updatePlayerLocation() {
         Vector3f upDir = new Vector3f(0, 1, 0);
         Vector3f camDir = cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = cam.getLeft().clone().multLocal(0.4f);
-        
+
         walkDirection.set(0, 0, 0);
         if (left) {
             walkDirection.addLocal(camLeft);
@@ -640,6 +665,8 @@ public class MainNew extends SimpleApplication {
         }
         if (up) {
             walkDirection.addLocal(camDir);
+            vehicle.accelerate(accelerationValue);
+
         }
         if (down) {
             walkDirection.addLocal(camDir.negate());
@@ -653,21 +680,21 @@ public class MainNew extends SimpleApplication {
         player.setWalkDirection(walkDirection);
         cam.setLocation(player.getPhysicsLocation());
     }
-    
+
     private void initHUD() {
         pic_block = new Picture("block");
         drawBlock(building_mode == 1);
-        
+
         pic_cable = new Picture("cable");
         drawCable(building_mode == 2);
-        
+
         pic_undo = new Picture("undo");
         drawUndo();
-        
+
         pic_start = new Picture("start");
         drawStart();
     }
-    
+
     private void drawBlock(Boolean isSelected) {
         if (isSelected) {
             pic_block.setImage(assetManager, "Textures/button_block_selected.png", true);
@@ -678,10 +705,10 @@ public class MainNew extends SimpleApplication {
         int height = width / 2;
         int x = settings.getWidth() * 5 / 10;
         int y = settings.getHeight() - 10 - height;
-        
+
         drawButton(pic_block, width, height, x, y);
     }
-    
+
     private void drawCable(Boolean isSelected) {
         if (isSelected) {
             pic_cable.setImage(assetManager, "Textures/button_cable_selected.png", true);
@@ -692,60 +719,167 @@ public class MainNew extends SimpleApplication {
         int height = width / 2;
         int x = settings.getWidth() * 7 / 10;
         int y = settings.getHeight() - 10 - height;
-        
+
         drawButton(pic_cable, width, height, x, y);
     }
-    
+
     private void drawUndo() {
         pic_undo.setImage(assetManager, "Textures/button_undo.png", true);
-        
+
         int width = settings.getWidth() / 10;
         int height = width;
         int x = settings.getWidth() - width - 10;
         int y = settings.getHeight() - 10 - height;
-        
+
         drawButton(pic_undo, width, height, x, y);
     }
-    
+
     private void drawStart() {
         pic_start.setImage(assetManager, "Textures/button_play.png", true);
-        
+
         int width = settings.getWidth() / 10;
         int height = width;
         int x = settings.getWidth() - width - 10;
         int y = settings.getHeight() - 2 * 10 - 2 * height;
-        
+
         drawButton(pic_start, width, height, x, y);
     }
-    
+
     private void drawButton(Picture pic, int width, int height, int x, int y) {
         pic.setWidth(width);
         pic.setHeight(height);
         pic.setPosition(x, y);
         guiNode.attachChild(pic);
     }
-    private VehicleControl vehicle;
-    
+
+    /* private void buildPlayer() {
+     Material mat = new Material(getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
+     mat.getAdditionalRenderState().setWireframe(true);
+     mat.setColor("Color", ColorRGBA.Red);
+
+     //create a compound shape and attach the BoxCollisionShape for the car body at 0,1,0
+     //this shifts the effective center of mass of the BoxCollisionShape to 0,-1,0
+     CompoundCollisionShape compoundShape = new CompoundCollisionShape();
+     BoxCollisionShape box = new BoxCollisionShape(new Vector3f(2f, 0.5f, 2.4f));
+     compoundShape.addChildShape(box, new Vector3f(0, 1, 0));
+        
+     Box b = new Box(2f, 0.5f, 2.4f);
+     Geometry g = new Geometry("vehicle body", b);
+     g.setMaterial(connection_mat);
+     g.setLocalTranslation(new Vector3f(0, 1, 0));
+     //create vehicle node
+     Node vehicleNode = new Node("vehicleNode");
+     vehicleNode.attachChild(g);
+     vehicleNode.setLocalTranslation(new Vector3f(2.5f, 1.8f, -10));
+     vehicle = new VehicleControl(compoundShape, 3000);
+     vehicleNode.addControl(vehicle);
+        
+
+     //setting suspension values for wheels, this can be a bit tricky
+     //see also https://docs.google.com/Doc?docid=0AXVUZ5xw6XpKZGNuZG56a3FfMzU0Z2NyZnF4Zmo&hl=en
+     float stiffness = 60.0f;//200=f1 car
+     float compValue = .3f; //(should be lower than damp)
+     float dampValue = .4f;
+     vehicle.setSuspensionCompression(compValue * 2.0f * FastMath.sqrt(stiffness));
+     vehicle.setSuspensionDamping(dampValue * 2.0f * FastMath.sqrt(stiffness));
+     vehicle.setSuspensionStiffness(stiffness);
+     vehicle.setMaxSuspensionForce(10000.0f);
+
+     //Create four wheels and add them at their locations
+     Vector3f wheelDirection = new Vector3f(0, -1, 0); // was 0, -1, 0
+     Vector3f wheelAxle = new Vector3f(-1, 0, 0); // was -1, 0, 0
+     float radius = 0.5f;
+     float restLength = 0.3f;
+     float yOff = 0.5f;
+     float xOff = 2.5f;
+     float zOff = 2f;
+        
+     Cylinder wheelMesh = new Cylinder(16, 16, radius, radius * 1.2f, true);
+     Cylinder wheelMesh2 = new Cylinder(16, 16, radius*2, radius * 1.2f, true);
+        
+     Node node1 = new Node("wheel 1 node");
+     Geometry wheels1 = new Geometry("wheel 1", wheelMesh);
+     node1.attachChild(wheels1);
+     wheels1.rotate(0, FastMath.HALF_PI, 0);
+     wheels1.setMaterial(mat);
+     vehicle.addWheel(node1, new Vector3f(-xOff, yOff, zOff),
+     wheelDirection, wheelAxle, restLength, radius, true);
+        
+     Node node2 = new Node("wheel 2 node");
+     Geometry wheels2 = new Geometry("wheel 2", wheelMesh);
+     node2.attachChild(wheels2);
+     wheels2.rotate(0, FastMath.HALF_PI, 0);
+     wheels2.setMaterial(mat);
+     vehicle.addWheel(node2, new Vector3f(xOff, yOff, zOff),
+     wheelDirection, wheelAxle, restLength, radius, true);
+        
+     Node node3 = new Node("wheel 3 node");
+     Geometry wheels3 = new Geometry("wheel 3", wheelMesh);
+     node3.attachChild(wheels3);
+     wheels3.rotate(0, FastMath.HALF_PI, 0);
+     wheels3.setMaterial(mat);
+     vehicle.addWheel(node3, new Vector3f(-xOff, yOff, 0),
+     wheelDirection, wheelAxle, restLength, radius, false);
+        
+     Node node4 = new Node("wheel 4 node");
+     Geometry wheels4 = new Geometry("wheel 4", wheelMesh);
+     node4.attachChild(wheels4);
+     wheels4.rotate(0, FastMath.HALF_PI, 0);
+     wheels4.setMaterial(mat);
+     vehicle.addWheel(node4, new Vector3f(xOff, yOff, 0),
+     wheelDirection, wheelAxle, restLength, radius, false);
+        
+     Node node5 = new Node("wheel 5 node");
+     Geometry wheels5 = new Geometry("wheel 5", wheelMesh2);
+     node5.attachChild(wheels5);
+     wheels5.rotate(0, FastMath.HALF_PI, 0);
+     wheels5.setMaterial(mat);
+     vehicle.addWheel(node5, new Vector3f(-xOff, yOff + radius, -zOff),
+     wheelDirection, wheelAxle, restLength, radius*2, false);
+        
+     Node node6 = new Node("wheel 6 node");
+     Geometry wheels6 = new Geometry("wheel 6", wheelMesh2);
+     node6.attachChild(wheels6);
+     wheels6.rotate(0, FastMath.HALF_PI, 0);
+     wheels6.setMaterial(mat);
+     vehicle.addWheel(node6, new Vector3f(xOff, yOff + radius, -zOff),
+     wheelDirection, wheelAxle, restLength, radius*2, false);
+        
+     vehicleNode.attachChild(node1);
+     vehicleNode.attachChild(node2);
+     vehicleNode.attachChild(node3);
+     vehicleNode.attachChild(node4);
+     vehicleNode.attachChild(node5);
+     vehicleNode.attachChild(node6);
+        
+     rootNode.attachChild(vehicleNode);
+     this.bulletAppStateGame.getPhysicsSpace().add(vehicle);
+        
+        
+        
+     }*/
     private void buildPlayer() {
-        Material mat = new Material(getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.getAdditionalRenderState().setWireframe(true);
-        mat.setColor("Color", ColorRGBA.Red);
+        matTrain = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matTrain.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/bmetal.jpg"));
+        matTrain2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        matTrain2.setTexture("ColorMap",
+                assetManager.loadTexture("Textures/rmetal.jpg"));
+        mat = new Material(assetManager,
+                "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", new ColorRGBA(0.15f, 0.1f, 0.12f, 10.0f));
 
         //create a compound shape and attach the BoxCollisionShape for the car body at 0,1,0
         //this shifts the effective center of mass of the BoxCollisionShape to 0,-1,0
         CompoundCollisionShape compoundShape = new CompoundCollisionShape();
-        BoxCollisionShape box = new BoxCollisionShape(new Vector3f(2f, 0.5f, 2.4f));
+        BoxCollisionShape box = new BoxCollisionShape(new Vector3f(1.6f, 0.8f, 3.8f));
         compoundShape.addChildShape(box, new Vector3f(0, 1, 0));
-        
-        Box b = new Box(2f, 0.5f, 2.4f);
-        Geometry g = new Geometry("vehicle body", b);
-        g.setMaterial(connection_mat);
-        g.setLocalTranslation(new Vector3f(0, 1, 0));
 
         //create vehicle node
         Node vehicleNode = new Node("vehicleNode");
-        vehicleNode.attachChild(g);
-        vehicleNode.setLocalTranslation(new Vector3f(2.5f, 1.8f, -10));
+        StaticTrainNew s = new StaticTrainNew();
+        vehicleNode = s.getSign(vehicleNode, matTrain, matTrain2, mat);
+        vehicleNode.scale(0.4f);
         vehicle = new VehicleControl(compoundShape, 3000);
         vehicleNode.addControl(vehicle);
 
@@ -760,17 +894,16 @@ public class MainNew extends SimpleApplication {
         vehicle.setMaxSuspensionForce(10000.0f);
 
         //Create four wheels and add them at their locations
-        Vector3f wheelDirection = new Vector3f(0, -1, 0); // was 0, -1, 0
-        Vector3f wheelAxle = new Vector3f(-1, 0, 0); // was -1, 0, 0
-        float radius = 0.5f;
+        Vector3f wheelDirection = new Vector3f(0, -0.5f, 0); // was 0, -1, 0
+        Vector3f wheelAxle = new Vector3f(-1f, 0, 0); // was -1, 0, 0
+        float radius = 2.0f;
         float restLength = 0.3f;
         float yOff = 0.5f;
-        float xOff = 2.5f;
-        float zOff = 2f;
-        
-        Cylinder wheelMesh = new Cylinder(16, 16, radius, radius * 1.2f, true);
-        Cylinder wheelMesh2 = new Cylinder(16, 16, radius*2, radius * 1.2f, true);
-        
+        float xOff = 1.6f;
+        float zOff = 3.0f;
+
+        Cylinder wheelMesh = new Cylinder(16, 16, radius, radius * 0.6f, true);
+
         Node node1 = new Node("wheel 1 node");
         Geometry wheels1 = new Geometry("wheel 1", wheelMesh);
         node1.attachChild(wheels1);
@@ -778,7 +911,7 @@ public class MainNew extends SimpleApplication {
         wheels1.setMaterial(mat);
         vehicle.addWheel(node1, new Vector3f(-xOff, yOff, zOff),
                 wheelDirection, wheelAxle, restLength, radius, true);
-        
+
         Node node2 = new Node("wheel 2 node");
         Geometry wheels2 = new Geometry("wheel 2", wheelMesh);
         node2.attachChild(wheels2);
@@ -786,50 +919,31 @@ public class MainNew extends SimpleApplication {
         wheels2.setMaterial(mat);
         vehicle.addWheel(node2, new Vector3f(xOff, yOff, zOff),
                 wheelDirection, wheelAxle, restLength, radius, true);
-        
+
         Node node3 = new Node("wheel 3 node");
         Geometry wheels3 = new Geometry("wheel 3", wheelMesh);
         node3.attachChild(wheels3);
         wheels3.rotate(0, FastMath.HALF_PI, 0);
         wheels3.setMaterial(mat);
-        vehicle.addWheel(node3, new Vector3f(-xOff, yOff, 0),
+        vehicle.addWheel(node3, new Vector3f(-xOff, yOff, -zOff),
                 wheelDirection, wheelAxle, restLength, radius, false);
-        
+
         Node node4 = new Node("wheel 4 node");
         Geometry wheels4 = new Geometry("wheel 4", wheelMesh);
         node4.attachChild(wheels4);
         wheels4.rotate(0, FastMath.HALF_PI, 0);
         wheels4.setMaterial(mat);
-        vehicle.addWheel(node4, new Vector3f(xOff, yOff, 0),
+        vehicle.addWheel(node4, new Vector3f(xOff, yOff, -zOff),
                 wheelDirection, wheelAxle, restLength, radius, false);
-        
-        Node node5 = new Node("wheel 5 node");
-        Geometry wheels5 = new Geometry("wheel 5", wheelMesh2);
-        node5.attachChild(wheels5);
-        wheels5.rotate(0, FastMath.HALF_PI, 0);
-        wheels5.setMaterial(mat);
-        vehicle.addWheel(node5, new Vector3f(-xOff, yOff + radius, -zOff),
-                wheelDirection, wheelAxle, restLength, radius*2, false);
-        
-        Node node6 = new Node("wheel 6 node");
-        Geometry wheels6 = new Geometry("wheel 6", wheelMesh2);
-        node6.attachChild(wheels6);
-        wheels6.rotate(0, FastMath.HALF_PI, 0);
-        wheels6.setMaterial(mat);
-        vehicle.addWheel(node6, new Vector3f(xOff, yOff + radius, -zOff),
-                wheelDirection, wheelAxle, restLength, radius*2, false);
-        
+
         vehicleNode.attachChild(node1);
         vehicleNode.attachChild(node2);
         vehicleNode.attachChild(node3);
         vehicleNode.attachChild(node4);
-        vehicleNode.attachChild(node5);
-        vehicleNode.attachChild(node6);
-        
+        vehicle.setMass(10.0f);
+        vehicle.setPhysicsLocation(new Vector3f(2.0f, 3.5f, -10.0f));
         rootNode.attachChild(vehicleNode);
+
         this.bulletAppStateGame.getPhysicsSpace().add(vehicle);
-        
-        
-        
     }
 }
