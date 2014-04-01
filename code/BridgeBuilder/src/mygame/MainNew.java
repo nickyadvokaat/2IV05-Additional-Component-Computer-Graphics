@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import train.staticTrain;
 import com.jme3.bullet.debug.*;
+import com.jme3.bullet.objects.PhysicsRigidBody;
 import train.StaticTrainNew;
 
 public class MainNew extends SimpleApplication {
@@ -108,9 +109,10 @@ public class MainNew extends SimpleApplication {
     private int connectionNameCounter = 0;
     private int barNameCounter = 0;
     private ArrayList<Geometry> connections = new ArrayList<Geometry>();
+    private ArrayList<Geometry> groundConnections = new ArrayList<Geometry>();
     private ArrayList<Geometry> bars = new ArrayList<Geometry>();
     private ArrayList<Geometry> targets = new ArrayList<Geometry>();
-    private ArrayList<HingeJoint> joints = new ArrayList<HingeJoint>();
+    private ArrayList<HingeJointRef> joints = new ArrayList<HingeJointRef>();
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false, keyq = false, keyz = false;
     private boolean play = false;
@@ -215,12 +217,8 @@ public class MainNew extends SimpleApplication {
         initCrossHairs();
         initGroundConnections();
         initHUD();
+
         initTrack();
-
-//        initTrain();
-        //rootNode.attachChild(trackNode);
-        //rootNode.attachChild(train);
-
         buildPlayer();
     }
 
@@ -236,41 +234,39 @@ public class MainNew extends SimpleApplication {
         trackNode2 = new Node();
         trackNode3 = new Node();
         trackNode.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode.setLocalTranslation(0,2,-15);
+        trackNode.setLocalTranslation(0, 2, -15);
         trackNode.addControl(new RigidBodyControl(3));
         bulletAppStateGame.getPhysicsSpace().add(trackNode);
         trackNode2.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode2.setLocalTranslation(0,2,3f);
+        trackNode2.setLocalTranslation(0, 2, 3f);
         trackNode2.addControl(new RigidBodyControl(3));
         bulletAppStateGame.getPhysicsSpace().add(trackNode2);
         trackNode3.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode3.setLocalTranslation(0,2,-6f);
+        trackNode3.setLocalTranslation(0, 2, -6f);
         trackNode3.addControl(new RigidBodyControl(3));
         bulletAppStateGame.getPhysicsSpace().add(trackNode3);
         rootNode.attachChild(trackNode);
         rootNode.attachChild(trackNode2);
         rootNode.attachChild(trackNode3);
-        trackNode4= new Node();
+        trackNode4 = new Node();
         trackNode5 = new Node();
         trackNode6 = new Node();
         trackNode4.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode4.setLocalTranslation(0,2,12);
+        trackNode4.setLocalTranslation(0, 2, 12);
         trackNode4.addControl(new RigidBodyControl(3));
         bulletAppStateGame.getPhysicsSpace().add(trackNode4);
         trackNode5.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode5.setLocalTranslation(0,2,21f);
+        trackNode5.setLocalTranslation(0, 2, 21f);
         trackNode5.addControl(new RigidBodyControl(3));
         bulletAppStateGame.getPhysicsSpace().add(trackNode5);
         trackNode6.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode6.setLocalTranslation(0,2,30f);
+        trackNode6.setLocalTranslation(0, 2, 30f);
         trackNode6.addControl(new RigidBodyControl(3));
         bulletAppStateGame.getPhysicsSpace().add(trackNode6);
         rootNode.attachChild(trackNode4);
         rootNode.attachChild(trackNode5);
         rootNode.attachChild(trackNode6);
-
     }
-
 
     private void initKeys() {
         inputManager.addMapping("Click",
@@ -314,19 +310,44 @@ public class MainNew extends SimpleApplication {
             } else if (name.equals("KeyZ")) {
                 keyz = keyPressed;
             }
-            if (name.equals("KeyP")) {/*
-                 play = true;
-                 trackNode.detachAllChildren();
-                 trackNode.attachChild(track.getTrack(100, matWood, matRail));
-                 trackNode.setLocalTranslation(0.0f, 0, -100);
-                 */
+            if (name.equals("KeyP")) {
                 targetsNode.detachAllChildren();
                 bulletAppStateGame.setSpeed(1);
                 gameStarted = true;
 
             }
-            if (name.equals("KeyR")) {
+            if (name.equals("KeyR") && !keyPressed) {
                 //remove previous
+                if (bars.size() > 0) {
+                    Geometry lastBar = bars.get(bars.size() - 1);
+                    bars.remove(lastBar);
+                    barsNode.detachChild(lastBar);
+
+                    // remove joints
+                    ArrayList<HingeJointRef> remove = new ArrayList<HingeJointRef>();
+                    for (HingeJointRef hgj : joints) {
+                        if (hgj.bar == lastBar) {
+                            remove.add(hgj);
+                        }
+                    }
+                    for (HingeJointRef r : remove) {
+                        joints.remove(r);
+                        bulletAppStateGame.getPhysicsSpace().remove(r);
+                    }
+
+                    // remove possible connections
+                    ArrayList<Geometry> removeG = new ArrayList<Geometry>();
+                    for (Geometry g : connections) {
+                        if (!groundConnections.contains(g) && jointsCount(g) == 0) {
+                            removeG.add(g);
+                        }
+                    }
+                    for (Geometry g : removeG) {
+                        connections.remove(g);
+                        connectionsNode.detachChild(g);
+                    }
+                }
+
             }
             if (name.equals("Key1")) {
                 building_mode = 1;
@@ -411,6 +432,17 @@ public class MainNew extends SimpleApplication {
         }
     };
 
+    private int jointsCount(Geometry g) {
+        int result = 0;
+        for (HingeJointRef hgj : this.joints) {
+            if (hgj.connection == g) {
+                result++;
+            }
+        }
+        System.out.println(result);
+        return result;
+    }
+
     private void resetTarget() {
         targetsNode.detachAllChildren();
         prevClickedGeometry = null;
@@ -466,7 +498,7 @@ public class MainNew extends SimpleApplication {
         this.bulletAppStateGame.getPhysicsSpace().add(rbc);
 
         this.connections.add(connectionGeometry);
-
+        this.groundConnections.add(connectionGeometry);
         // visual
         Geometry connectionGeometry2 = new Geometry("connection" + this.connectionNameCounter++, this.connection);
         connectionGeometry2.setMaterial(connection_mat);
@@ -556,23 +588,27 @@ public class MainNew extends SimpleApplication {
         }
 
         // add first joint
-        HingeJoint joint1 = new HingeJoint(barGeometry.getControl(RigidBodyControl.class),
+        HingeJointRef joint1 = new HingeJointRef(barGeometry.getControl(RigidBodyControl.class),
                 connection1.getControl(RigidBodyControl.class),
                 v1,
                 v2,
                 Vector3f.UNIT_Z,
-                Vector3f.UNIT_Z);
+                Vector3f.UNIT_Z,
+                connection1,
+                barGeometry);
         joint1.setLimit(0, 0);
         bulletAppStateGame.getPhysicsSpace().add(joint1);
         this.joints.add(joint1);
 
         // add second joint
-        HingeJoint joint2 = new HingeJoint(barGeometry.getControl(RigidBodyControl.class),
+        HingeJointRef joint2 = new HingeJointRef(barGeometry.getControl(RigidBodyControl.class),
                 connection2.getControl(RigidBodyControl.class),
                 v3,
                 v4,
                 Vector3f.UNIT_Z,
-                Vector3f.UNIT_Z);
+                Vector3f.UNIT_Z,
+                connection2,
+                barGeometry);
         joint2.setLimit(0, 0);
         bulletAppStateGame.getPhysicsSpace().add(joint2);
         this.joints.add(joint2);
@@ -639,10 +675,10 @@ public class MainNew extends SimpleApplication {
 
     // if the force on a joints exceeds a certain limit it will break
     private void checkBreakingJoints() {
-        ArrayList<HingeJoint> newJoints = new ArrayList<HingeJoint>();
+        ArrayList<HingeJointRef> newJoints = new ArrayList<HingeJointRef>();
         for (int i = 0; i < this.joints.size(); i++) {
-            HingeJoint j = this.joints.get(i);
-            if (j.getAppliedImpulse() > 50) {
+            HingeJointRef j = this.joints.get(i);
+            if (j.getAppliedImpulse() > 20) {
                 bulletAppStateGame.getPhysicsSpace().remove(j);
             } else {
                 newJoints.add(j);
@@ -752,112 +788,6 @@ public class MainNew extends SimpleApplication {
         guiNode.attachChild(pic);
     }
 
-    /* private void buildPlayer() {
-     Material mat = new Material(getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-     mat.getAdditionalRenderState().setWireframe(true);
-     mat.setColor("Color", ColorRGBA.Red);
-
-     //create a compound shape and attach the BoxCollisionShape for the car body at 0,1,0
-     //this shifts the effective center of mass of the BoxCollisionShape to 0,-1,0
-     CompoundCollisionShape compoundShape = new CompoundCollisionShape();
-     BoxCollisionShape box = new BoxCollisionShape(new Vector3f(2f, 0.5f, 2.4f));
-     compoundShape.addChildShape(box, new Vector3f(0, 1, 0));
-        
-     Box b = new Box(2f, 0.5f, 2.4f);
-     Geometry g = new Geometry("vehicle body", b);
-     g.setMaterial(connection_mat);
-     g.setLocalTranslation(new Vector3f(0, 1, 0));
-     //create vehicle node
-     Node vehicleNode = new Node("vehicleNode");
-     vehicleNode.attachChild(g);
-     vehicleNode.setLocalTranslation(new Vector3f(2.5f, 1.8f, -10));
-     vehicle = new VehicleControl(compoundShape, 3000);
-     vehicleNode.addControl(vehicle);
-        
-
-     //setting suspension values for wheels, this can be a bit tricky
-     //see also https://docs.google.com/Doc?docid=0AXVUZ5xw6XpKZGNuZG56a3FfMzU0Z2NyZnF4Zmo&hl=en
-     float stiffness = 60.0f;//200=f1 car
-     float compValue = .3f; //(should be lower than damp)
-     float dampValue = .4f;
-     vehicle.setSuspensionCompression(compValue * 2.0f * FastMath.sqrt(stiffness));
-     vehicle.setSuspensionDamping(dampValue * 2.0f * FastMath.sqrt(stiffness));
-     vehicle.setSuspensionStiffness(stiffness);
-     vehicle.setMaxSuspensionForce(10000.0f);
-
-     //Create four wheels and add them at their locations
-     Vector3f wheelDirection = new Vector3f(0, -1, 0); // was 0, -1, 0
-     Vector3f wheelAxle = new Vector3f(-1, 0, 0); // was -1, 0, 0
-     float radius = 0.5f;
-     float restLength = 0.3f;
-     float yOff = 0.5f;
-     float xOff = 2.5f;
-     float zOff = 2f;
-        
-     Cylinder wheelMesh = new Cylinder(16, 16, radius, radius * 1.2f, true);
-     Cylinder wheelMesh2 = new Cylinder(16, 16, radius*2, radius * 1.2f, true);
-        
-     Node node1 = new Node("wheel 1 node");
-     Geometry wheels1 = new Geometry("wheel 1", wheelMesh);
-     node1.attachChild(wheels1);
-     wheels1.rotate(0, FastMath.HALF_PI, 0);
-     wheels1.setMaterial(mat);
-     vehicle.addWheel(node1, new Vector3f(-xOff, yOff, zOff),
-     wheelDirection, wheelAxle, restLength, radius, true);
-        
-     Node node2 = new Node("wheel 2 node");
-     Geometry wheels2 = new Geometry("wheel 2", wheelMesh);
-     node2.attachChild(wheels2);
-     wheels2.rotate(0, FastMath.HALF_PI, 0);
-     wheels2.setMaterial(mat);
-     vehicle.addWheel(node2, new Vector3f(xOff, yOff, zOff),
-     wheelDirection, wheelAxle, restLength, radius, true);
-        
-     Node node3 = new Node("wheel 3 node");
-     Geometry wheels3 = new Geometry("wheel 3", wheelMesh);
-     node3.attachChild(wheels3);
-     wheels3.rotate(0, FastMath.HALF_PI, 0);
-     wheels3.setMaterial(mat);
-     vehicle.addWheel(node3, new Vector3f(-xOff, yOff, 0),
-     wheelDirection, wheelAxle, restLength, radius, false);
-        
-     Node node4 = new Node("wheel 4 node");
-     Geometry wheels4 = new Geometry("wheel 4", wheelMesh);
-     node4.attachChild(wheels4);
-     wheels4.rotate(0, FastMath.HALF_PI, 0);
-     wheels4.setMaterial(mat);
-     vehicle.addWheel(node4, new Vector3f(xOff, yOff, 0),
-     wheelDirection, wheelAxle, restLength, radius, false);
-        
-     Node node5 = new Node("wheel 5 node");
-     Geometry wheels5 = new Geometry("wheel 5", wheelMesh2);
-     node5.attachChild(wheels5);
-     wheels5.rotate(0, FastMath.HALF_PI, 0);
-     wheels5.setMaterial(mat);
-     vehicle.addWheel(node5, new Vector3f(-xOff, yOff + radius, -zOff),
-     wheelDirection, wheelAxle, restLength, radius*2, false);
-        
-     Node node6 = new Node("wheel 6 node");
-     Geometry wheels6 = new Geometry("wheel 6", wheelMesh2);
-     node6.attachChild(wheels6);
-     wheels6.rotate(0, FastMath.HALF_PI, 0);
-     wheels6.setMaterial(mat);
-     vehicle.addWheel(node6, new Vector3f(xOff, yOff + radius, -zOff),
-     wheelDirection, wheelAxle, restLength, radius*2, false);
-        
-     vehicleNode.attachChild(node1);
-     vehicleNode.attachChild(node2);
-     vehicleNode.attachChild(node3);
-     vehicleNode.attachChild(node4);
-     vehicleNode.attachChild(node5);
-     vehicleNode.attachChild(node6);
-        
-     rootNode.attachChild(vehicleNode);
-     this.bulletAppStateGame.getPhysicsSpace().add(vehicle);
-        
-        
-        
-     }*/
     private void buildPlayer() {
         matTrain = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matTrain.setTexture("ColorMap",
@@ -945,5 +875,17 @@ public class MainNew extends SimpleApplication {
         rootNode.attachChild(vehicleNode);
 
         this.bulletAppStateGame.getPhysicsSpace().add(vehicle);
+    }
+
+    private class HingeJointRef extends HingeJoint {
+
+        public Geometry connection;
+        public Geometry bar;
+
+        public HingeJointRef(PhysicsRigidBody nodeA, PhysicsRigidBody nodeB, Vector3f pivotA, Vector3f pivotB, Vector3f axisA, Vector3f axisB, Geometry connection, Geometry bar) {
+            super(nodeA, nodeB, pivotA, pivotB, axisA, axisB);
+            this.connection = connection;
+            this.bar = bar;
+        }
     }
 }
