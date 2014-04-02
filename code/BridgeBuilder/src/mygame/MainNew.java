@@ -283,6 +283,7 @@ public class MainNew extends SimpleApplication {
         inputManager.addMapping("Key1", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("Key2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("KeyP", new KeyTrigger(KeyInput.KEY_P));
+        inputManager.addMapping("KeyI", new KeyTrigger(KeyInput.KEY_I));
         inputManager.addListener(actionListener, "Left");
         inputManager.addListener(actionListener, "Right");
         inputManager.addListener(actionListener, "Up");
@@ -293,6 +294,7 @@ public class MainNew extends SimpleApplication {
         inputManager.addListener(actionListener, "Key1");
         inputManager.addListener(actionListener, "Key2");
         inputManager.addListener(actionListener, "KeyP");
+        inputManager.addListener(actionListener, "KeyI");
     }
     // responds when key or button is pressed
     private ActionListener actionListener = new ActionListener() {
@@ -316,12 +318,17 @@ public class MainNew extends SimpleApplication {
                 gameStarted = true;
 
             }
+            // debugging
+            if (name.equals("KeyI") && !keyPressed) {
+                //
+            }
             if (name.equals("KeyR") && !keyPressed) {
                 //remove previous
                 if (bars.size() > 0) {
                     Geometry lastBar = bars.get(bars.size() - 1);
                     bars.remove(lastBar);
                     barsNode.detachChild(lastBar);
+                    bulletAppStateGame.getPhysicsSpace().remove(lastBar);
 
                     // remove joints
                     ArrayList<HingeJointRef> remove = new ArrayList<HingeJointRef>();
@@ -345,6 +352,7 @@ public class MainNew extends SimpleApplication {
                     for (Geometry g : removeG) {
                         connections.remove(g);
                         connectionsNode.detachChild(g);
+                        bulletAppStateGame.getPhysicsSpace().remove(g);
                     }
                 }
 
@@ -439,7 +447,6 @@ public class MainNew extends SimpleApplication {
                 result++;
             }
         }
-        System.out.println(result);
         return result;
     }
 
@@ -642,16 +649,6 @@ public class MainNew extends SimpleApplication {
         ball_phy.setLinearVelocity(cam.getDirection().mult(25));
     }
 
-    public void updateTrain() {
-        train.detachChild(wheels);
-        wheels = new Node();
-        wheels = sTrain.getWheelsCyl(matTrain2, speedtrain);
-        train.attachChild(wheels);
-        train.setLocalTranslation(2.0f, 2.0f, 80 - (speedtrain / 20));
-        speedtrain++;
-
-    }
-
     private void initCrossHairs() {
         guiNode.detachAllChildren();
         guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
@@ -668,9 +665,6 @@ public class MainNew extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         checkBreakingJoints();
         updatePlayerLocation();
-        if (play) {
-            updateTrain();
-        }
     }
 
     // if the force on a joints exceeds a certain limit it will break
@@ -701,8 +695,7 @@ public class MainNew extends SimpleApplication {
         }
         if (up) {
             walkDirection.addLocal(camDir);
-            vehicle.accelerate(accelerationValue);
-
+            //vehicle.accelerate(accelerationValue);
         }
         if (down) {
             walkDirection.addLocal(camDir.negate());
