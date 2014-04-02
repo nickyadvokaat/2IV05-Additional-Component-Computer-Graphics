@@ -131,6 +131,7 @@ public class MainNew extends SimpleApplication {
     private float steeringValue = 0;
     private float accelerationValue = 10.0f;
     private Vector3f jumpForce = new Vector3f(0, 3000, 0);
+    private static Vector3f[] dirVectors;
 
     static {
         // Initialize the cannon ball geometry        
@@ -153,6 +154,14 @@ public class MainNew extends SimpleApplication {
         // Initialize the bar in z direction geometry 
         barZ = new Box(w, w, 2);
         barZ.scaleTextureCoordinates(new Vector2f(1f, .5f));
+
+        dirVectors = new Vector3f[6];
+        dirVectors[0] = new Vector3f(5, 0, 0);
+        dirVectors[1] = new Vector3f(-5, 0, 0);
+        dirVectors[2] = new Vector3f(0, 5, 0);
+        dirVectors[3] = new Vector3f(0, -5, 0);
+        dirVectors[4] = new Vector3f(0, 0, 5);
+        dirVectors[5] = new Vector3f(0, 0, -5);
     }
 
     @Override
@@ -395,35 +404,52 @@ public class MainNew extends SimpleApplication {
                                 if (prevClickedGeometry == null) {
                                     prevClickedGeometry = geometry;
                                     Vector3f translation = closest.getGeometry().getLocalTransform().getTranslation();
-                                    addTarget(new Vector3f(translation.x, translation.y + 5, translation.z));
-                                    addTarget(new Vector3f(translation.x, translation.y - 5, translation.z));
-                                    addTarget(new Vector3f(translation.x + 5, translation.y, translation.z));
-                                    addTarget(new Vector3f(translation.x, translation.y, translation.z + 5));
-                                    addTarget(new Vector3f(translation.x - 5, translation.y, translation.z));
-                                    addTarget(new Vector3f(translation.x, translation.y, translation.z - 5));
-                                } else {
-                                    if (geometry != prevClickedGeometry
-                                            && distance(geometry.getWorldTranslation(), prevClickedGeometry.getWorldTranslation()) < 6) {
-                                        if (prevClickedGeometry.getWorldTranslation().x > geometry.getWorldTranslation().x
-                                                || prevClickedGeometry.getWorldTranslation().y > geometry.getWorldTranslation().y
-                                                || prevClickedGeometry.getWorldTranslation().z > geometry.getWorldTranslation().z) {
-                                            addBar(geometry, prevClickedGeometry);
-                                        } else {
-                                            addBar(prevClickedGeometry, geometry);
+
+                                    int[] a = addExtraTargets(translation);
+                                    for (int i = 0; i < 6; i++) {
+                                        if (a[i] >= 1 || !isBarAtLocation(translation, translation.add(dirVectors[i]))) {
+                                            addTarget(translation.add(dirVectors[i]));
+                                        }
+                                        if (a[i] >= 2) {
+                                            addTarget(translation.add(dirVectors[i].mult(a[i])));
                                         }
                                     }
+                                } else {
                                     resetTarget();
                                 }
                                 break;
                             case 2: // target
-                                addConnection(geometry.getLocalTranslation());
+                                Vector3f locClick = geometry.getLocalTranslation();
+                                Vector3f locPrev = prevClickedGeometry.getWorldTranslation();
+                                Vector3f dir = getDirectionVector(locPrev, locClick);
+                                int nrBars = getNrBars(locPrev, locClick);
 
-                                if (prevClickedGeometry.getWorldTranslation().x > connections.get(connections.size() - 1).getWorldTranslation().x
-                                        || prevClickedGeometry.getWorldTranslation().y > connections.get(connections.size() - 1).getWorldTranslation().y
-                                        || prevClickedGeometry.getWorldTranslation().z > connections.get(connections.size() - 1).getWorldTranslation().z) {
-                                    addBar(connections.get(connections.size() - 1), prevClickedGeometry);
-                                } else {
-                                    addBar(prevClickedGeometry, connections.get(connections.size() - 1));
+                                if (nrBars == 1) {
+                                    Geometry connectTo = getConnectionAtLocation(locClick);
+                                    if (!isConnectionAtLocation(locClick)) {
+                                        addConnection(locClick);
+                                        connectTo = connections.get(connections.size() - 1);
+                                    }
+                                    addBar(prevClickedGeometry, connectTo);
+
+                                } else if (nrBars > 1) {
+                                    Vector3f locationBegin = prevClickedGeometry.getWorldTranslation();
+                                    Geometry geometryBegin = prevClickedGeometry;
+
+                                    for (int i = 0; i < nrBars; i++) {
+                                        Vector3f locationEnd = locationBegin.add(dir);
+
+                                        Geometry geometryEnd = getConnectionAtLocation(locationEnd);
+                                        if (!isConnectionAtLocation(locationEnd)) {
+                                            addConnection(locationEnd);
+                                            geometryEnd = connections.get(connections.size() - 1);
+                                        }
+
+                                        addBar(geometryBegin, geometryEnd);
+
+                                        geometryBegin = geometryEnd;
+                                        locationBegin = locationEnd;
+                                    }
                                 }
 
                                 resetTarget();
@@ -530,6 +556,16 @@ public class MainNew extends SimpleApplication {
     }
 
     private void addBar(Geometry connection1, Geometry connection2) {
+        if (connection1.getWorldTranslation().x > connection2.getWorldTranslation().x
+                || connection1.getWorldTranslation().y > connection2.getWorldTranslation().y
+                || connection1.getWorldTranslation().z > connection2.getWorldTranslation().z) {
+            addBarH(connection2, connection1);
+        } else {
+            addBarH(connection1, connection2);
+        }
+    }
+
+    private void addBarH(Geometry connection1, Geometry connection2) {
         Vector3f location = new Vector3f(
                 (connection1.getWorldTranslation().x + connection2.getWorldTranslation().x) / 2,
                 (connection1.getWorldTranslation().y + connection2.getWorldTranslation().y) / 2,
@@ -624,13 +660,97 @@ public class MainNew extends SimpleApplication {
     private void addTarget(Vector3f location) {
         Geometry targetGeometry = new Geometry("target" + this.connectionNameCounter++, this.connection);
         targetGeometry.setMaterial(target_mat);
-        //targetGeometry.scale(1.1f);
+        targetGeometry.scale(1.1f);
         targetGeometry.setLocalTranslation(location);
         targetGeometry.setUserData("type", 2);
 
         this.targetsNode.attachChild(targetGeometry);
 
         this.targets.add(targetGeometry);
+    }
+
+    private int[] addExtraTargets(Vector3f loc) {
+        int[] dist = new int[6];
+
+        for (int i = 0; i < dist.length; i++) {
+            dist[i] = checkDirection(loc, this.dirVectors[i]);
+        }
+
+        return dist;
+    }
+
+    private Vector3f getDirectionVector(Vector3f from, Vector3f to) {
+        if (from.x < to.x) {
+            return this.dirVectors[0];
+        }
+        if (from.x > to.x) {
+            return this.dirVectors[1];
+        }
+        if (from.y < to.y) {
+            return this.dirVectors[2];
+        }
+        if (from.y > to.y) {
+            return this.dirVectors[3];
+        }
+        if (from.z < to.z) {
+            return this.dirVectors[4];
+        }
+        if (from.z > to.z) {
+            return this.dirVectors[5];
+        }
+        return null;
+    }
+
+    private int getNrBars(Vector3f from, Vector3f to) {
+        if (from.x != to.x) {
+            return (int) Math.abs((from.x - to.x) / 5);
+        }
+        if (from.y != to.y) {
+            return (int) Math.abs((from.y - to.y) / 5);
+        }
+        if (from.z != to.z) {
+            return (int) Math.abs((from.z - to.z) / 5);
+        }
+        return 0;
+    }
+
+    private int checkDirection(Vector3f loc, Vector3f d) {
+        int i = 1;
+        while (i < 5) {
+            if (isConnectionAtLocation(loc.add(d.mult(i)))) {
+                break;
+            }
+            i++;
+        }
+        return i;
+    }
+
+    private Boolean isConnectionAtLocation(Vector3f loc) {
+        for (Geometry g : this.connections) {
+            if (g.getWorldTranslation().equals(loc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Geometry getConnectionAtLocation(Vector3f loc) {
+        for (Geometry g : this.connections) {
+            if (g.getWorldTranslation().equals(loc)) {
+                return g;
+            }
+        }
+        return null;
+    }
+
+    private Boolean isBarAtLocation(Vector3f v1, Vector3f v2) {
+        Vector3f location = new Vector3f((v1.x + v2.x) / 2, (v1.y + v2.y) / 2, (v1.z + v2.z) / 2);
+        for (Geometry g : this.bars) {
+            if (g.getWorldTranslation().equals(location)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void makeCannonBall() {
@@ -665,6 +785,7 @@ public class MainNew extends SimpleApplication {
     public void simpleUpdate(float tpf) {
         checkBreakingJoints();
         updatePlayerLocation();
+        vehicle.accelerate(accelerationValue);
     }
 
     // if the force on a joints exceeds a certain limit it will break
@@ -695,7 +816,7 @@ public class MainNew extends SimpleApplication {
         }
         if (up) {
             walkDirection.addLocal(camDir);
-            //vehicle.accelerate(accelerationValue);
+            
         }
         if (down) {
             walkDirection.addLocal(camDir.negate());
