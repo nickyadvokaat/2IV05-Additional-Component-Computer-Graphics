@@ -19,7 +19,7 @@ import java.util.Scanner;
  */
 public class Highscore {
 
-    final static String FILE_NAME = "C:\\out.txt";
+    final static String FILE_NAME = "C:\\bridgebuilder\\out.txt";
     final static Charset ENCODING = StandardCharsets.UTF_8;
     private int[] scores;
 

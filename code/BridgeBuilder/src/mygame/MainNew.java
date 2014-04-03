@@ -52,6 +52,7 @@ import de.lessvoid.nifty.screen.ScreenController;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import train.StaticTrainNew;
+import train.tunnel;
 
 public class MainNew extends SimpleApplication implements ScreenController {
 
@@ -268,6 +269,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         initMaterials();
         initCrossHairs();
         initGroundConnections();
+        initTunnel();
 //        initHUD();
         setupHUD();
         initTrack();
@@ -495,39 +497,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
                                 }
                                 break;
                             case 2: // target
-                                Vector3f locClick = geometry.getLocalTranslation();
-                                Vector3f locPrev = prevClickedGeometry.getWorldTranslation();
-                                Vector3f dir = getDirectionVector(locPrev, locClick);
-                                int nrBars = getNrBars(locPrev, locClick);
-
-                                if (nrBars == 1) {
-                                    Geometry connectTo = getConnectionAtLocation(locClick);
-                                    if (!isConnectionAtLocation(locClick)) {
-                                        addConnection(locClick);
-                                        connectTo = connections.get(connections.size() - 1);
-                                    }
-                                    addBar(prevClickedGeometry, connectTo);
-
-                                } else if (nrBars > 1) {
-                                    Vector3f locationBegin = prevClickedGeometry.getWorldTranslation();
-                                    Geometry geometryBegin = prevClickedGeometry;
-
-                                    for (int i = 0; i < nrBars; i++) {
-                                        Vector3f locationEnd = locationBegin.add(dir);
-
-                                        Geometry geometryEnd = getConnectionAtLocation(locationEnd);
-                                        if (!isConnectionAtLocation(locationEnd)) {
-                                            addConnection(locationEnd);
-                                            geometryEnd = connections.get(connections.size() - 1);
-                                        }
-
-                                        addBar(geometryBegin, geometryEnd);
-
-                                        geometryBegin = geometryEnd;
-                                        locationBegin = locationEnd;
-                                    }
-                                }
-
+                                build(prevClickedGeometry, geometry);
                                 resetTarget();
                                 break;
                             case 3: // bar
@@ -541,6 +511,29 @@ public class MainNew extends SimpleApplication implements ScreenController {
             }
         }
     };
+
+    private void build(Geometry geometryFrom, Geometry geometryTo) {
+        Vector3f locTo = geometryTo.getLocalTranslation();
+        Vector3f locFrom = geometryFrom.getWorldTranslation();
+        Vector3f dir = getDirectionVector(locFrom, locTo);
+        int nrBars = getNrBars(locFrom, locTo);
+
+        Vector3f locationBegin = geometryFrom.getWorldTranslation();
+        Geometry geometryBegin = geometryFrom;
+
+        for (int i = 0; i < nrBars; i++) {
+            Vector3f locationEnd = locationBegin.add(dir);
+
+            Geometry geometryEnd = getConnectionAtLocation(locationEnd);
+            if (!isConnectionAtLocation(locationEnd)) {
+                addConnection(locationEnd);
+                geometryEnd = connections.get(connections.size() - 1);
+            }
+            addBar(geometryBegin, geometryEnd);
+            geometryBegin = geometryEnd;
+            locationBegin = locationEnd;
+        }
+    }
 
     private int jointsCount(Geometry g) {
         int result = 0;
@@ -582,6 +575,23 @@ public class MainNew extends SimpleApplication implements ScreenController {
         target_mat.setTexture("ColorMap", tex3);
     }
 
+    private void initTunnel() {
+        Quaternion q = new Quaternion();
+        q.fromAngleAxis(FastMath.PI / 2, new Vector3f(0, 1, 0));
+
+        Node n = tunnel.getTunnel(assetManager);
+        n.setLocalRotation(q);
+        n.setLocalTranslation(2.5f, 0, -90);
+        n.scale(2f);
+        this.rootNode.attachChild(n);
+
+        Node n2 = tunnel.getTunnel(assetManager);
+        n2.setLocalRotation(q);
+        n2.setLocalTranslation(2.5f, 0, 90);
+        n2.scale(2f);
+        this.rootNode.attachChild(n2);
+    }
+
     private void initGroundConnections() {
         int x = 1;
         switch (level) {
@@ -594,6 +604,13 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(5, -15 + x, 0));
                 addGroundConnection(new Vector3f(0, -15 + x, 10));
                 addGroundConnection(new Vector3f(5, -15 + x, 10));
+
+                for (int i = 1; i < 15; i++) {
+                    addGroundConnection(new Vector3f(0, 0 + x, -15 - 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, -15 - 5 * i));
+                    addGroundConnection(new Vector3f(0, 0 + x, 25 + 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, 25 + 5 * i));
+                }
                 break;
             case 2:
                 addGroundConnection(new Vector3f(0, 0 + x, -35));
@@ -1149,7 +1166,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
     private NiftyJmeDisplay niftyDisplay;
     private NiftyJmeDisplay hud;
 
-    public void setupHUD(){
+    public void setupHUD() {
         hud = new NiftyJmeDisplay(assetManager,
                 inputManager,
                 audioRenderer,
@@ -1160,8 +1177,8 @@ public class MainNew extends SimpleApplication implements ScreenController {
         // attach the nifty display to the gui view port as a processor
         guiViewPort.addProcessor(hud);
     }
-    
-    public void closeHUD(){
+
+    public void closeHUD() {
         guiViewPort.removeProcessor(hud);
     }
 

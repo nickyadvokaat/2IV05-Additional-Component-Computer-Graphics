@@ -31,9 +31,9 @@ public class tunnel {
         Texture tex2 = assetManager.loadTexture(key2);
         bottom_mat.setTexture("ColorMap", tex2);
 
-        Box sideBottom = new Box(5f, 1f, 1f);
-        Box side = new Box(5f, 2f, 0.5f);
-        Box roofBox = new Box(5f, 0.5f, 3.0f);
+        Box sideBottom = new Box(10f, 1f, 1f);
+        Box side = new Box(10f, 2f, 0.5f);
+        Box roofBox = new Box(10f, 0.5f, 3.0f);
 
         Geometry sideBottomLeft = new Geometry("", sideBottom);
         sideBottomLeft.setMaterial(bottom_mat);
