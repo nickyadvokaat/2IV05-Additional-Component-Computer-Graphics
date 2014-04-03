@@ -19,7 +19,7 @@ import java.util.Scanner;
  */
 public class Highscore {
 
-    final static String FILE_NAME = "D:\\out.txt";
+    final static String FILE_NAME = "C:\\out.txt";
     final static Charset ENCODING = StandardCharsets.UTF_8;
     private int[] scores;
 
@@ -50,6 +50,7 @@ public class Highscore {
         out.println(scores[1]);
         out.println(scores[2]);
         out.println(scores[3]);
+        out.close();
     }
 
     public void newScore(int level, int score) throws IOException {

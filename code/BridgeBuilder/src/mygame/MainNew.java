@@ -398,16 +398,17 @@ public class MainNew extends SimpleApplication implements ScreenController {
             }
             // debugging
             if (name.equals("KeyI") && !keyPressed) {
-
-                if (menu) {
-                    flyCam.setEnabled(true);
-                    guiViewPort.removeProcessor(niftyDisplay);
-                    inputManager.setCursorVisible(false);
-                    menu = false;
-                } else {
-                    setupMenu();
-                    menu = true;
-                }
+                guiViewPort.removeProcessor(niftyDisplay);
+                inputManager.setCursorVisible(false);
+                /*    if (menu) {
+                 flyCam.setEnabled(true);
+                 guiViewPort.removeProcessor(niftyDisplay);
+                 inputManager.setCursorVisible(false);
+                 menu = false;
+                 } else {
+                 setupMenu();
+                 menu = true;
+                 }*/
             }
             // debugging
             if (name.equals("KeyR") && !keyPressed) {
@@ -1219,6 +1220,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
     }
 
     public void complete() {
+        if(menu == false){
         niftyDisplay = new NiftyJmeDisplay(assetManager,
                 inputManager,
                 audioRenderer,
@@ -1228,8 +1230,15 @@ public class MainNew extends SimpleApplication implements ScreenController {
 
         // attach the nifty display to the gui view port as a processor
         guiViewPort.addProcessor(niftyDisplay);
+
+
+        // disable the fly cam
+//        flyCam.setEnabled(false);
+//        flyCam.setDragToRotate(true);
         inputManager.setCursorVisible(true);
         flyCam.setEnabled(false);
+        menu = true;
+        }
     }
 
     public void startLevel(String i) {
