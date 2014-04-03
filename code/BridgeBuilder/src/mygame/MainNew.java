@@ -1195,6 +1195,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         guiViewPort.removeProcessor(niftyDisplay);
         inputManager.setCursorVisible(false);
         menu = false;
+        gameStarted = false;
     }
 
     public void returnToGame() {
