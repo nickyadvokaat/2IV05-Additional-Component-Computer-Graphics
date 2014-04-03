@@ -45,12 +45,21 @@ import javax.imageio.ImageIO;
 import train.staticTrain;
 import com.jme3.bullet.debug.*;
 import com.jme3.bullet.objects.PhysicsRigidBody;
+import com.jme3.niftygui.NiftyJmeDisplay;
+import de.lessvoid.nifty.Nifty;
+import de.lessvoid.nifty.screen.Screen;
+import de.lessvoid.nifty.screen.ScreenController;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import train.StaticTrainNew;
 
-public class MainNew extends SimpleApplication {
+public class MainNew extends SimpleApplication implements ScreenController {
+
+    static MainNew app;
+    Highscore HS;
 
     public static void main(String args[]) {
-        MainNew app = new MainNew();
+        app = new MainNew();
         AppSettings settings = new AppSettings(true);
         // Set title
         settings.setTitle("BridgeBuilder V2");
@@ -73,6 +82,8 @@ public class MainNew extends SimpleApplication {
         app.start();
     }
     // Prepare the Physics Application State (jBullet)
+    private Nifty nifty;
+    private boolean menu = false;
     private BulletAppState bulletAppStateGame;
     private BulletAppState bulletAppStateCamera;
     private CharacterControl player;
@@ -102,6 +113,9 @@ public class MainNew extends SimpleApplication {
     private Node trackNode5;
     private Node trackNode6;
     private Node trackNode4;
+    private Node trackNode7;
+    private Node trackNode8;
+    private Node trackNode9;
     private Node train;
     private Node wheels;
     private Geometry prevClickedGeometry;
@@ -129,9 +143,12 @@ public class MainNew extends SimpleApplication {
     private final float accelerationForce = 1000.0f;
     private final float brakeForce = 50.0f;
     private float steeringValue = 0;
-    private float accelerationValue = 10.0f;
+    private float accelerationValue = 7.0f;
     private Vector3f jumpForce = new Vector3f(0, 3000, 0);
     private static Vector3f[] dirVectors;
+    private int level = 0;
+    private int highscore;
+    private String levelStatus;
 
     static {
         // Initialize the cannon ball geometry        
@@ -166,6 +183,11 @@ public class MainNew extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        try {
+            HS = new Highscore();
+        } catch (IOException ex) {
+            Logger.getLogger(MainNew.class.getName()).log(Level.SEVERE, null, ex);
+        }
         // Set up nodesdebugNode = BulletDebugNode('Debug')
         DebugTools debugNode;
         debugNode = new DebugTools(assetManager);
@@ -179,6 +201,12 @@ public class MainNew extends SimpleApplication {
         targetsNode = new Node("targetsNode");
         clickablesNode.attachChild(targetsNode);
 
+
+        // disable the fly cam
+//        flyCam.setEnabled(false);
+//        flyCam.setDragToRotate(true);
+        inputManager.setCursorVisible(true);
+
         // Set speed of camera
         flyCam.setMoveSpeed(30.0f);
 
@@ -190,17 +218,38 @@ public class MainNew extends SimpleApplication {
         stateManager.attach(bulletAppStateGame);
         // Pause physics
         bulletAppStateGame.setSpeed(0);
-
+        Spatial terrainCamera;
+        Spatial terrainGame;
         // Load terrain
-        Spatial terrainCamera = assetManager.loadModel("Scenes/Level1.j3o");
+        switch (level) {
+            case 0:
+                terrainCamera = assetManager.loadModel("Scenes/Level1.j3o");
+                terrainGame = assetManager.loadModel("Scenes/Level1.j3o");
+                break;
+            case 1:
+                terrainCamera = assetManager.loadModel("Scenes/Level2.j3o");
+                terrainGame = assetManager.loadModel("Scenes/Level2.j3o");
+                break;
+            case 2:
+                terrainCamera = assetManager.loadModel("Scenes/level3.j3o");
+                terrainGame = assetManager.loadModel("Scenes/level3.j3o");
+                break;
+            case 3:
+                terrainCamera = assetManager.loadModel("Scenes/level4.j3o");
+                terrainGame = assetManager.loadModel("Scenes/level4.j3o");
+                break;
+            default:
+                terrainCamera = assetManager.loadModel("Scenes/Level1.j3o");
+                terrainGame = assetManager.loadModel("Scenes/Level1.j3o");
+                break;
+        }
+
         rootNode.attachChild(terrainCamera);
         TerrainLodControl lodControlCamera = ((Node) terrainCamera).getControl(TerrainLodControl.class);
         if (lodControlCamera != null) {
             lodControlCamera.setCamera(getCamera());
         }
         terrainCamera.addControl(new RigidBodyControl(0));
-
-        Spatial terrainGame = assetManager.loadModel("Scenes/Level1.j3o");
         rootNode.attachChild(terrainGame);
         TerrainLodControl lodControlGame = ((Node) terrainGame).getControl(TerrainLodControl.class);
         if (lodControlGame != null) {
@@ -271,10 +320,30 @@ public class MainNew extends SimpleApplication {
         trackNode6.attachChild(track.getTrack(3, matWood, matRail));
         trackNode6.setLocalTranslation(0, 2, 30f);
         trackNode6.addControl(new RigidBodyControl(3));
-        bulletAppStateGame.getPhysicsSpace().add(trackNode6);
         rootNode.attachChild(trackNode4);
         rootNode.attachChild(trackNode5);
-        rootNode.attachChild(trackNode6);
+        if (level == 1) {
+            bulletAppStateGame.getPhysicsSpace().add(trackNode6);
+            rootNode.attachChild(trackNode6);
+            trackNode7 = new Node();
+            trackNode8 = new Node();
+            trackNode9 = new Node();
+            trackNode7.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode7.setLocalTranslation(0, 2, -24);
+            trackNode7.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode7);
+            trackNode8.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode8.setLocalTranslation(0, 2, -33f);
+            trackNode8.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode8);
+            trackNode9.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode9.setLocalTranslation(0, 2, -42f);
+            trackNode9.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode9);
+            rootNode.attachChild(trackNode7);
+            rootNode.attachChild(trackNode8);
+            rootNode.attachChild(trackNode9);
+        }
     }
 
     private void initKeys() {
@@ -293,6 +362,7 @@ public class MainNew extends SimpleApplication {
         inputManager.addMapping("Key2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("KeyP", new KeyTrigger(KeyInput.KEY_P));
         inputManager.addMapping("KeyI", new KeyTrigger(KeyInput.KEY_I));
+        inputManager.addMapping("KeyM", new KeyTrigger(KeyInput.KEY_M));
         inputManager.addListener(actionListener, "Left");
         inputManager.addListener(actionListener, "Right");
         inputManager.addListener(actionListener, "Up");
@@ -325,12 +395,21 @@ public class MainNew extends SimpleApplication {
                 targetsNode.detachAllChildren();
                 bulletAppStateGame.setSpeed(1);
                 gameStarted = true;
-
             }
             // debugging
             if (name.equals("KeyI") && !keyPressed) {
-                //
+
+                if (menu) {
+                    flyCam.setEnabled(true);
+                    guiViewPort.removeProcessor(niftyDisplay);
+                    inputManager.setCursorVisible(false);
+                    menu = false;
+                } else {
+                    setupMenu();
+                    menu = true;
+                }
             }
+            // debugging
             if (name.equals("KeyR") && !keyPressed) {
                 //remove previous
                 if (bars.size() > 0) {
@@ -508,14 +587,62 @@ public class MainNew extends SimpleApplication {
 
     private void initGroundConnections() {
         int x = 1;
-        addGroundConnection(new Vector3f(0, 0 + x, -15));
-        addGroundConnection(new Vector3f(5, 0 + x, -15));
-        addGroundConnection(new Vector3f(0, 0 + x, 25));
-        addGroundConnection(new Vector3f(5, 0 + x, 25));
-        addGroundConnection(new Vector3f(0, -15 + x, 0));
-        addGroundConnection(new Vector3f(5, -15 + x, 0));
-        addGroundConnection(new Vector3f(0, -15 + x, 10));
-        addGroundConnection(new Vector3f(5, -15 + x, 10));
+        switch (level) {
+            case 0:
+                addGroundConnection(new Vector3f(0, 0 + x, -15));
+                addGroundConnection(new Vector3f(5, 0 + x, -15));
+                addGroundConnection(new Vector3f(0, 0 + x, 25));
+                addGroundConnection(new Vector3f(5, 0 + x, 25));
+                addGroundConnection(new Vector3f(0, -15 + x, 0));
+                addGroundConnection(new Vector3f(5, -15 + x, 0));
+                addGroundConnection(new Vector3f(0, -15 + x, 10));
+                addGroundConnection(new Vector3f(5, -15 + x, 10));
+                break;
+            case 1:
+                addGroundConnection(new Vector3f(0, 0 + x, -35));
+                addGroundConnection(new Vector3f(5, 0 + x, -35));
+                addGroundConnection(new Vector3f(0, 0 + x, 35));
+                addGroundConnection(new Vector3f(5, 0 + x, 35));
+                addGroundConnection(new Vector3f(5f, -25 + x, 5));
+                addGroundConnection(new Vector3f(0f, -25 + x, 5));
+                addGroundConnection(new Vector3f(0f, -25 + x, 10));
+                addGroundConnection(new Vector3f(5f, -25 + x, 10));
+                addGroundConnection(new Vector3f(0f, -25 + x, 15));
+                addGroundConnection(new Vector3f(5f, -25 + x, 15));
+                break;
+            case 2:
+                addGroundConnection(new Vector3f(0, 0 + x, -15));
+                addGroundConnection(new Vector3f(5, 0 + x, -15));
+                addGroundConnection(new Vector3f(0, 0 + x, 25));
+                addGroundConnection(new Vector3f(5, 0 + x, 25));
+                addGroundConnection(new Vector3f(0, -15 + x, 0));
+                addGroundConnection(new Vector3f(5, -15 + x, 0));
+                addGroundConnection(new Vector3f(0, -15 + x, 10));
+                addGroundConnection(new Vector3f(5, -15 + x, 10));
+                break;
+            case 3:
+                addGroundConnection(new Vector3f(0, 0 + x, -15));
+                addGroundConnection(new Vector3f(5, 0 + x, -15));
+                addGroundConnection(new Vector3f(0, 0 + x, 25));
+                addGroundConnection(new Vector3f(5, 0 + x, 25));
+                addGroundConnection(new Vector3f(0, -15 + x, 0));
+                addGroundConnection(new Vector3f(5, -15 + x, 0));
+                addGroundConnection(new Vector3f(0, -15 + x, 10));
+                addGroundConnection(new Vector3f(5, -15 + x, 10));
+                break;
+            default:
+                addGroundConnection(new Vector3f(0, 0 + x, -15));
+                addGroundConnection(new Vector3f(5, 0 + x, -15));
+                addGroundConnection(new Vector3f(0, 0 + x, 25));
+                addGroundConnection(new Vector3f(5, 0 + x, 25));
+                addGroundConnection(new Vector3f(0, -15 + x, 0));
+                addGroundConnection(new Vector3f(5, -15 + x, 0));
+                addGroundConnection(new Vector3f(0, -15 + x, 10));
+                addGroundConnection(new Vector3f(5, -15 + x, 10));
+                break;
+        }
+
+
     }
 
     private void addGroundConnection(Vector3f location) {
@@ -786,6 +913,27 @@ public class MainNew extends SimpleApplication {
         checkBreakingJoints();
         updatePlayerLocation();
         vehicle.accelerate(accelerationValue);
+        if (vehicle.getPhysicsLocation().getZ() > 22) {
+            bulletAppStateGame.setEnabled(false);
+            highscore = 120 - bars.size();
+            if (highscore > HS.getScore(level)) {
+                levelStatus = "New Highscore";
+            } else {
+                levelStatus = "Succeed";
+            }
+            try {
+                HS.newScore(level, highscore);
+            } catch (IOException ex) {
+                Logger.getLogger(MainNew.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            complete();
+        }
+        if (vehicle.getPhysicsLocation().getY() < -10) {
+            bulletAppStateGame.setEnabled(false);
+            levelStatus = "Failed";
+            highscore = 0;
+            complete();
+        }
     }
 
     // if the force on a joints exceeds a certain limit it will break
@@ -816,7 +964,7 @@ public class MainNew extends SimpleApplication {
         }
         if (up) {
             walkDirection.addLocal(camDir);
-            
+
         }
         if (down) {
             walkDirection.addLocal(camDir.negate());
@@ -903,6 +1051,15 @@ public class MainNew extends SimpleApplication {
     }
 
     private void buildPlayer() {
+        float x;
+        switch (level) {
+            default:
+                x = 0;
+                break;
+            case 1:
+                x = -27;
+                break;
+        }
         matTrain = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         matTrain.setTexture("ColorMap",
                 assetManager.loadTexture("Textures/bmetal.jpg"));
@@ -985,10 +1142,117 @@ public class MainNew extends SimpleApplication {
         vehicleNode.attachChild(node3);
         vehicleNode.attachChild(node4);
         vehicle.setMass(10.0f);
-        vehicle.setPhysicsLocation(new Vector3f(2.0f, 3.5f, -10.0f));
+        vehicle.setPhysicsLocation(new Vector3f(2.0f, 3.5f, -10.0f + x));
         rootNode.attachChild(vehicleNode);
 
         this.bulletAppStateGame.getPhysicsSpace().add(vehicle);
+    }
+    private NiftyJmeDisplay niftyDisplay;
+
+    public void setupMenu() {
+        niftyDisplay = new NiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("Interface/screen1.xml", "start", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+
+
+        // disable the fly cam
+//        flyCam.setEnabled(false);
+//        flyCam.setDragToRotate(true);
+        inputManager.setCursorVisible(true);
+        flyCam.setEnabled(false);
+    }
+
+    public void restartGame() {
+        rootNode.detachAllChildren();
+        connections.clear();
+        bars.clear();
+        barsNode.detachAllChildren();
+        simpleInitApp();
+        inputManager.setCursorVisible(false);
+        flyCam.setEnabled(true);
+        guiViewPort.removeProcessor(niftyDisplay);
+        inputManager.setCursorVisible(false);
+        menu = false;
+    }
+
+    public void returnToGame() {
+        flyCam.setEnabled(true);
+        guiViewPort.removeProcessor(niftyDisplay);
+        inputManager.setCursorVisible(false);
+        menu = false;
+    }
+
+    public void endGame() {
+        app.requestClose(true);
+    }
+
+    public void selectLevelMenu() {
+        guiViewPort.removeProcessor(niftyDisplay);
+        niftyDisplay = new NiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("Interface/screen1.xml", "Level", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+    }
+
+    public void delectLevelMenu() {
+        guiViewPort.removeProcessor(niftyDisplay);
+        niftyDisplay = new NiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("Interface/screen1.xml", "Start", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+    }
+
+    public void complete() {
+        niftyDisplay = new NiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = niftyDisplay.getNifty();
+        nifty.fromXml("Interface/screen1.xml", "Complete", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(niftyDisplay);
+        inputManager.setCursorVisible(true);
+        flyCam.setEnabled(false);
+    }
+
+    public void startLevel(String i) {
+        level = Integer.parseInt(i);
+        restartGame();
+    }
+
+    public void bind(Nifty nifty, Screen screen) {
+        this.nifty = nifty;
+    }
+
+    public void onStartScreen() {
+    }
+
+    public void onEndScreen() {
+    }
+
+    public String getStatus() {
+        return levelStatus;
+    }
+
+    public String getScore() {
+        return String.valueOf(highscore);
     }
 
     private class HingeJointRef extends HingeJoint {

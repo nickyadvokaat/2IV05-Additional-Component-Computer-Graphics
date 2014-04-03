@@ -19,6 +19,7 @@ public class openCylinder {
     
     public Mesh getCylinder(float f1, float f2, float f3, int i){
         Mesh m = new Mesh();
+        
         Vector3f [] vertices = new Vector3f[4*i];
         float rate = FastMath.TWO_PI / i;
         float angle = 0;
@@ -32,6 +33,7 @@ public class openCylinder {
                 vertices[j+3*i] = new Vector3f(x*f2,y*f2,f3);
                 angle += rate;
                 }
+        BufferUtils.setTrackDirectMemoryEnabled(true);
         m.setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
         m.setBuffer(Type.Index,    3, BufferUtils.createIntBuffer(getIndexes(i)));
         m.updateBound();
