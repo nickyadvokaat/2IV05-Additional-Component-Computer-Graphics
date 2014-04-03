@@ -268,8 +268,8 @@ public class MainNew extends SimpleApplication implements ScreenController {
         initMaterials();
         initCrossHairs();
         initGroundConnections();
-        initHUD();
-
+//        initHUD();
+        setupHUD();
         initTrack();
         buildPlayer();
     }
@@ -341,6 +341,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
     }
 
     private void initKeys() {
+        inputManager.deleteMapping(INPUT_MAPPING_EXIT);
         inputManager.addMapping("Click",
                 new KeyTrigger(KeyInput.KEY_SPACE), // trigger 1: spacebar
                 new MouseButtonTrigger(MouseInput.BUTTON_LEFT)); // trigger 2: left-button click
@@ -356,7 +357,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         inputManager.addMapping("Key2", new KeyTrigger(KeyInput.KEY_2));
         inputManager.addMapping("KeyP", new KeyTrigger(KeyInput.KEY_P));
         inputManager.addMapping("KeyI", new KeyTrigger(KeyInput.KEY_I));
-        inputManager.addMapping("KeyM", new KeyTrigger(KeyInput.KEY_M));
+        inputManager.addMapping("ESC", new KeyTrigger(KeyInput.KEY_ESCAPE));
         inputManager.addListener(actionListener, "Left");
         inputManager.addListener(actionListener, "Right");
         inputManager.addListener(actionListener, "Up");
@@ -368,6 +369,8 @@ public class MainNew extends SimpleApplication implements ScreenController {
         inputManager.addListener(actionListener, "Key2");
         inputManager.addListener(actionListener, "KeyP");
         inputManager.addListener(actionListener, "KeyI");
+        inputManager.addListener(actionListener, "ESC");
+
     }
     // responds when key or button is pressed
     private ActionListener actionListener = new ActionListener() {
@@ -391,17 +394,17 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 gameStarted = true;
             }
             // debugging
-            if (name.equals("KeyI") && !keyPressed) {
+            if (name.equals("ESC") && !keyPressed) {
 
-                 if (menu) {
-                 flyCam.setEnabled(true);
-                 guiViewPort.removeProcessor(niftyDisplay);
-                 inputManager.setCursorVisible(false);
-                 menu = false;
-                 } else {
-                 setupMenu();
-                 menu = true;
-                 }
+                if (menu) {
+                    flyCam.setEnabled(true);
+                    guiViewPort.removeProcessor(niftyDisplay);
+                    inputManager.setCursorVisible(false);
+                    menu = false;
+                } else {
+                    setupMenu();
+                    menu = true;
+                }
             }
             // debugging
             if (name.equals("KeyR") && !keyPressed) {
@@ -1144,6 +1147,23 @@ public class MainNew extends SimpleApplication implements ScreenController {
         this.bulletAppStateGame.getPhysicsSpace().add(vehicle);
     }
     private NiftyJmeDisplay niftyDisplay;
+    private NiftyJmeDisplay hud;
+
+    public void setupHUD(){
+        hud = new NiftyJmeDisplay(assetManager,
+                inputManager,
+                audioRenderer,
+                guiViewPort);
+        nifty = hud.getNifty();
+        nifty.fromXml("Interface/screen1.xml", "hud", this);
+
+        // attach the nifty display to the gui view port as a processor
+        guiViewPort.addProcessor(hud);
+    }
+    
+    public void closeHUD(){
+        guiViewPort.removeProcessor(hud);
+    }
 
     public void setupMenu() {
         niftyDisplay = new NiftyJmeDisplay(assetManager,
@@ -1215,24 +1235,24 @@ public class MainNew extends SimpleApplication implements ScreenController {
     }
 
     public void complete() {
-        if(menu == false){
-        niftyDisplay = new NiftyJmeDisplay(assetManager,
-                inputManager,
-                audioRenderer,
-                guiViewPort);
-        nifty = niftyDisplay.getNifty();
-        nifty.fromXml("Interface/screen1.xml", "Complete", this);
+        if (menu == false) {
+            niftyDisplay = new NiftyJmeDisplay(assetManager,
+                    inputManager,
+                    audioRenderer,
+                    guiViewPort);
+            nifty = niftyDisplay.getNifty();
+            nifty.fromXml("Interface/screen1.xml", "Complete", this);
 
-        // attach the nifty display to the gui view port as a processor
-        guiViewPort.addProcessor(niftyDisplay);
+            // attach the nifty display to the gui view port as a processor
+            guiViewPort.addProcessor(niftyDisplay);
 
 
-        // disable the fly cam
+            // disable the fly cam
 //        flyCam.setEnabled(false);
 //        flyCam.setDragToRotate(true);
-        inputManager.setCursorVisible(true);
-        flyCam.setEnabled(false);
-        menu = true;
+            inputManager.setCursorVisible(true);
+            flyCam.setEnabled(false);
+            menu = true;
         }
     }
 
