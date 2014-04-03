@@ -144,6 +144,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
     private int level = 0;
     private int highscore;
     private String levelStatus;
+    private ArrayList<Node> trackNodes;
 
     static {
         // Initialize the cannon ball geometry        
@@ -284,63 +285,74 @@ public class MainNew extends SimpleApplication implements ScreenController {
         matRail.setTexture("ColorMap",
                 assetManager.loadTexture("Textures/metal.jpg"));
         track = new TrainTrack();
-        trackNode = new Node();
-        trackNode2 = new Node();
-        trackNode3 = new Node();
-        trackNode.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode.setLocalTranslation(0, 2, -15);
-        trackNode.addControl(new RigidBodyControl(3));
-        bulletAppStateGame.getPhysicsSpace().add(trackNode);
-        trackNode2.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode2.setLocalTranslation(0, 2, 3f);
-        trackNode2.addControl(new RigidBodyControl(3));
-        bulletAppStateGame.getPhysicsSpace().add(trackNode2);
-        trackNode3.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode3.setLocalTranslation(0, 2, -6f);
-        trackNode3.addControl(new RigidBodyControl(3));
-        bulletAppStateGame.getPhysicsSpace().add(trackNode3);
-        rootNode.attachChild(trackNode);
-        rootNode.attachChild(trackNode2);
-        rootNode.attachChild(trackNode3);
-        trackNode4 = new Node();
-        trackNode5 = new Node();
-        trackNode6 = new Node();
-        trackNode4.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode4.setLocalTranslation(0, 2, 12);
-        trackNode4.addControl(new RigidBodyControl(3));
-        bulletAppStateGame.getPhysicsSpace().add(trackNode4);
-        trackNode5.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode5.setLocalTranslation(0, 2, 21f);
-        trackNode5.addControl(new RigidBodyControl(3));
-        bulletAppStateGame.getPhysicsSpace().add(trackNode5);
-        trackNode6.attachChild(track.getTrack(3, matWood, matRail));
-        trackNode6.setLocalTranslation(0, 2, 30f);
-        trackNode6.addControl(new RigidBodyControl(3));
-        rootNode.attachChild(trackNode4);
-        rootNode.attachChild(trackNode5);
-        if (level == 1) {
-            bulletAppStateGame.getPhysicsSpace().add(trackNode6);
-            rootNode.attachChild(trackNode6);
-            trackNode7 = new Node();
-            trackNode8 = new Node();
-            trackNode9 = new Node();
-            trackNode7.attachChild(track.getTrack(3, matWood, matRail));
-            trackNode7.setLocalTranslation(0, 2, -24);
-            trackNode7.addControl(new RigidBodyControl(3));
-            bulletAppStateGame.getPhysicsSpace().add(trackNode7);
-            trackNode8.attachChild(track.getTrack(3, matWood, matRail));
-            trackNode8.setLocalTranslation(0, 2, -33f);
-            trackNode8.addControl(new RigidBodyControl(3));
-            bulletAppStateGame.getPhysicsSpace().add(trackNode8);
-            trackNode9.attachChild(track.getTrack(3, matWood, matRail));
-            trackNode9.setLocalTranslation(0, 2, -42f);
-            trackNode9.addControl(new RigidBodyControl(3));
-            bulletAppStateGame.getPhysicsSpace().add(trackNode9);
-            rootNode.attachChild(trackNode7);
-            rootNode.attachChild(trackNode8);
-            rootNode.attachChild(trackNode9);
+        if(level ==0 ){
+            initRail1();
+        }else{
+            initRail2();
+        }
+      
+    }
+    
+    private void initRail2(){
+        for (int i = 0; i < 6; i++) {
+            trackNode = new Node();
+            trackNode.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode.setLocalTranslation(0.5f, 1.75f, -88 + 9 * i);
+            trackNode.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode);
+            rootNode.attachChild(trackNode);
+        }
+        for (int i = 0; i < 7; i++) {
+            trackNode = new Node();
+            trackNode.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode.setLocalTranslation(+0.5f, 1.75f, 38 + 9 * i);
+            trackNode.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode);
+            rootNode.attachChild(trackNode);
         }
     }
+    
+    private void initRail1(){
+        for (int i = 0; i < 8; i++) {
+            trackNode = new Node();
+            trackNode.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode.setLocalTranslation(0.5f, 1.75f, -88 + 9 * i);
+            trackNode.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode);
+            rootNode.attachChild(trackNode);
+        }
+        for (int i = 0; i < 8; i++) {
+            trackNode = new Node();
+            trackNode.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode.setLocalTranslation(+0.5f, 1.75f, 29 + 9 * i);
+            trackNode.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode);
+            rootNode.attachChild(trackNode);
+        }
+    }
+
+    private void drawBridge1() {
+        for (int i = 0; i < 5; i++) {
+            trackNode = new Node();
+            trackNode.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode.setLocalTranslation(+0.5f, 1.75f, -16 + 9 * i);
+            trackNode.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode);
+            rootNode.attachChild(trackNode);
+        }
+    }
+
+    private void drawBridge2() {
+        for (int i = 0; i < 8; i++) {
+            trackNode = new Node();
+            trackNode.attachChild(track.getTrack(3, matWood, matRail));
+            trackNode.setLocalTranslation(+0.5f, 1.75f, -34 + 9 * i);
+            trackNode.addControl(new RigidBodyControl(3));
+            bulletAppStateGame.getPhysicsSpace().add(trackNode);
+            rootNode.attachChild(trackNode);
+        }
+    }
+
 
     private void initKeys() {
         inputManager.deleteMapping(INPUT_MAPPING_EXIT);
@@ -391,6 +403,11 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 keyz = keyPressed;
             }
             if (name.equals("KeyP")) {
+                if(level == 0 ){
+                    drawBridge1();
+                }else{
+                    drawBridge2();
+                }
                 targetsNode.detachAllChildren();
                 bulletAppStateGame.setSpeed(1);
                 gameStarted = true;
@@ -623,6 +640,12 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(5f, -10 + x, 0));
                 addGroundConnection(new Vector3f(0f, -25 + x, 15));
                 addGroundConnection(new Vector3f(5f, -25 + x, 15));
+                for (int i = 1; i < 13; i++) {
+                    addGroundConnection(new Vector3f(0, 0 + x, -35 - 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, -35 - 5 * i));
+                    addGroundConnection(new Vector3f(0, 0 + x, 35 + 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, 35 + 5 * i));
+                }
                 break;
             case 1:
                 addGroundConnection(new Vector3f(0, 0 + x, -35));
@@ -635,7 +658,14 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(5f, -25 + x, 10));
                 addGroundConnection(new Vector3f(0f, -25 + x, 15));
                 addGroundConnection(new Vector3f(5f, -25 + x, 15));
+                for (int i = 1; i < 13; i++) {
+                    addGroundConnection(new Vector3f(0, 0 + x, -35 - 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, -35 - 5 * i));
+                    addGroundConnection(new Vector3f(0, 0 + x, 35 + 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, 35 + 5 * i));
+                }
                 break;
+                
             case 3:
                 addGroundConnection(new Vector3f(0, 0 + x, -35));
                 addGroundConnection(new Vector3f(5, 0 + x, -35));
@@ -645,6 +675,12 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(5f, -25 + x, 0));
                 addGroundConnection(new Vector3f(0f, -25 + x, 15));
                 addGroundConnection(new Vector3f(5f, -25 + x, 15));
+                for (int i = 1; i < 13; i++) {
+                    addGroundConnection(new Vector3f(0, 0 + x, -35 - 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, -35 - 5 * i));
+                    addGroundConnection(new Vector3f(0, 0 + x, 40 + 5 * i));
+                    addGroundConnection(new Vector3f(5, 0 + x, 40 + 5 * i));
+                }
                 break;
             default:
                 addGroundConnection(new Vector3f(0, 0 + x, -15));
@@ -1158,7 +1194,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         vehicleNode.attachChild(node3);
         vehicleNode.attachChild(node4);
         vehicle.setMass(10.0f);
-        vehicle.setPhysicsLocation(new Vector3f(2.0f, 3.5f, -10.0f + x));
+        vehicle.setPhysicsLocation(new Vector3f(2.0f, 3.5f, -30.0f + x));
         rootNode.attachChild(vehicleNode);
 
         this.bulletAppStateGame.getPhysicsSpace().add(vehicle);

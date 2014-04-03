@@ -75,6 +75,7 @@ public class Main extends SimpleApplication {
     Material matTrain;
     Material matTrain2;
     Material matTrain3;
+    
     public static void main(String[] args) {
         Main app = new Main();
         AppSettings settings = new AppSettings(true);
