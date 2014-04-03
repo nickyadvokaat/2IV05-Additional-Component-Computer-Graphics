@@ -133,18 +133,12 @@ public class MainNew extends SimpleApplication implements ScreenController {
     private boolean gameStarted = false;
     private TrainTrack track;
     private roadSign roadSign;
-    private staticTrain sTrain;
-    private int speedtrain = 0;
     private Picture pic_block;
     private Picture pic_undo;
     private Picture pic_start;
     private Picture pic_cable;
     private VehicleControl vehicle;
-    private final float accelerationForce = 1000.0f;
-    private final float brakeForce = 50.0f;
-    private float steeringValue = 0;
     private float accelerationValue = 7.0f;
-    private Vector3f jumpForce = new Vector3f(0, 3000, 0);
     private static Vector3f[] dirVectors;
     private int level = 0;
     private int highscore;
@@ -398,9 +392,8 @@ public class MainNew extends SimpleApplication implements ScreenController {
             }
             // debugging
             if (name.equals("KeyI") && !keyPressed) {
-                guiViewPort.removeProcessor(niftyDisplay);
-                inputManager.setCursorVisible(false);
-                /*    if (menu) {
+
+                 if (menu) {
                  flyCam.setEnabled(true);
                  guiViewPort.removeProcessor(niftyDisplay);
                  inputManager.setCursorVisible(false);
@@ -408,7 +401,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
                  } else {
                  setupMenu();
                  menu = true;
-                 }*/
+                 }
             }
             // debugging
             if (name.equals("KeyR") && !keyPressed) {
@@ -599,6 +592,18 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(0, -15 + x, 10));
                 addGroundConnection(new Vector3f(5, -15 + x, 10));
                 break;
+            case 2:
+                addGroundConnection(new Vector3f(0, 0 + x, -35));
+                addGroundConnection(new Vector3f(5, 0 + x, -35));
+                addGroundConnection(new Vector3f(0, 0 + x, 35));
+                addGroundConnection(new Vector3f(5, 0 + x, 35));
+                addGroundConnection(new Vector3f(5f, -10 + x, 5));
+                addGroundConnection(new Vector3f(0f, -10 + x, 5));
+                addGroundConnection(new Vector3f(0f, -10 + x, 0));
+                addGroundConnection(new Vector3f(5f, -10 + x, 0));
+                addGroundConnection(new Vector3f(0f, -25 + x, 15));
+                addGroundConnection(new Vector3f(5f, -25 + x, 15));
+                break;
             case 1:
                 addGroundConnection(new Vector3f(0, 0 + x, -35));
                 addGroundConnection(new Vector3f(5, 0 + x, -35));
@@ -611,25 +616,15 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(0f, -25 + x, 15));
                 addGroundConnection(new Vector3f(5f, -25 + x, 15));
                 break;
-            case 2:
-                addGroundConnection(new Vector3f(0, 0 + x, -15));
-                addGroundConnection(new Vector3f(5, 0 + x, -15));
-                addGroundConnection(new Vector3f(0, 0 + x, 25));
-                addGroundConnection(new Vector3f(5, 0 + x, 25));
-                addGroundConnection(new Vector3f(0, -15 + x, 0));
-                addGroundConnection(new Vector3f(5, -15 + x, 0));
-                addGroundConnection(new Vector3f(0, -15 + x, 10));
-                addGroundConnection(new Vector3f(5, -15 + x, 10));
-                break;
             case 3:
-                addGroundConnection(new Vector3f(0, 0 + x, -15));
-                addGroundConnection(new Vector3f(5, 0 + x, -15));
-                addGroundConnection(new Vector3f(0, 0 + x, 25));
-                addGroundConnection(new Vector3f(5, 0 + x, 25));
-                addGroundConnection(new Vector3f(0, -15 + x, 0));
-                addGroundConnection(new Vector3f(5, -15 + x, 0));
-                addGroundConnection(new Vector3f(0, -15 + x, 10));
-                addGroundConnection(new Vector3f(5, -15 + x, 10));
+                addGroundConnection(new Vector3f(0, 0 + x, -35));
+                addGroundConnection(new Vector3f(5, 0 + x, -35));
+                addGroundConnection(new Vector3f(0, 0 + x, 40));
+                addGroundConnection(new Vector3f(5, 0 + x, 40));
+                addGroundConnection(new Vector3f(0f, -25 + x, 0));
+                addGroundConnection(new Vector3f(5f, -25 + x, 0));
+                addGroundConnection(new Vector3f(0f, -25 + x, 15));
+                addGroundConnection(new Vector3f(5f, -25 + x, 15));
                 break;
             default:
                 addGroundConnection(new Vector3f(0, 0 + x, -15));
