@@ -45,6 +45,7 @@ import javax.imageio.ImageIO;
 import train.staticTrain;
 import com.jme3.bullet.debug.*;
 import com.jme3.bullet.objects.PhysicsRigidBody;
+import com.jme3.material.RenderState.BlendMode;
 import com.jme3.niftygui.NiftyJmeDisplay;
 import de.lessvoid.nifty.Nifty;
 import de.lessvoid.nifty.screen.Screen;
@@ -287,8 +288,10 @@ public class MainNew extends SimpleApplication implements ScreenController {
         track = new TrainTrack();
         if(level ==0 ){
             initRail1();
+            drawBridge1();
         }else{
             initRail2();
+            drawBridge2();
         }
       
     }
@@ -317,7 +320,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
             trackNode = new Node();
             trackNode.attachChild(track.getTrack(3, matWood, matRail));
             trackNode.setLocalTranslation(0.5f, 1.75f, -88 + 9 * i);
-            trackNode.addControl(new RigidBodyControl(3));
+            trackNode.addControl(new RigidBodyControl(30));
             bulletAppStateGame.getPhysicsSpace().add(trackNode);
             rootNode.attachChild(trackNode);
         }
@@ -325,7 +328,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
             trackNode = new Node();
             trackNode.attachChild(track.getTrack(3, matWood, matRail));
             trackNode.setLocalTranslation(+0.5f, 1.75f, 29 + 9 * i);
-            trackNode.addControl(new RigidBodyControl(3));
+            trackNode.addControl(new RigidBodyControl(30));
             bulletAppStateGame.getPhysicsSpace().add(trackNode);
             rootNode.attachChild(trackNode);
         }
@@ -403,11 +406,6 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 keyz = keyPressed;
             }
             if (name.equals("KeyP")) {
-                if(level == 0 ){
-                    drawBridge1();
-                }else{
-                    drawBridge2();
-                }
                 targetsNode.detachAllChildren();
                 bulletAppStateGame.setSpeed(1);
                 gameStarted = true;
@@ -634,6 +632,8 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(5, 0 + x, -35));
                 addGroundConnection(new Vector3f(0, 0 + x, 35));
                 addGroundConnection(new Vector3f(5, 0 + x, 35));
+                 addGroundConnection(new Vector3f(0, -10 + x, -15));
+                addGroundConnection(new Vector3f(5, -10 + x, -15));
                 addGroundConnection(new Vector3f(5f, -10 + x, 5));
                 addGroundConnection(new Vector3f(0f, -10 + x, 5));
                 addGroundConnection(new Vector3f(0f, -10 + x, 0));
@@ -652,6 +652,8 @@ public class MainNew extends SimpleApplication implements ScreenController {
                 addGroundConnection(new Vector3f(5, 0 + x, -35));
                 addGroundConnection(new Vector3f(0, 0 + x, 35));
                 addGroundConnection(new Vector3f(5, 0 + x, 35));
+                addGroundConnection(new Vector3f(0, -10 + x, -15));
+                addGroundConnection(new Vector3f(5, -10 + x, -15));                
                 addGroundConnection(new Vector3f(5f, -25 + x, 5));
                 addGroundConnection(new Vector3f(0f, -25 + x, 5));
                 addGroundConnection(new Vector3f(0f, -25 + x, 10));
@@ -935,17 +937,20 @@ public class MainNew extends SimpleApplication implements ScreenController {
     private void makeCannonBall() {
         // Create a cannon ball geometry and attach to scene graph.
         Geometry ball_geo = new Geometry("cannon ball", sphere);
-        ball_geo.setMaterial(connection_mat);
+        Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        m.setColor("Color", new ColorRGBA(1,0,0,0.0f));
+        m.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        ball_geo.setMaterial(m);
         rootNode.attachChild(ball_geo);
         // Position the cannon ball
-        ball_geo.setLocalTranslation(cam.getLocation());
+        ball_geo.setLocalTranslation(new Vector3f(0.0f,10.0f,10.0f));
         // Make the ball physcial with a mass > 0.0f
-        ball_phy = new RigidBodyControl(5f);
+        ball_phy = new RigidBodyControl(2f);
         // Add physical ball to physics space.
         ball_geo.addControl(ball_phy);
         bulletAppStateGame.getPhysicsSpace().add(ball_phy);
         // Accelerate the physcial ball to shoot it.
-        ball_phy.setLinearVelocity(cam.getDirection().mult(25));
+        ball_phy.setLinearVelocity(new Vector3f(0.0f,-15.0f,0.0f));
     }
 
     private void initCrossHairs() {
@@ -965,7 +970,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         checkBreakingJoints();
         updatePlayerLocation();
         vehicle.accelerate(accelerationValue);
-        if (vehicle.getPhysicsLocation().getZ() > 22) {
+        if (vehicle.getPhysicsLocation().getZ() > 50) {
             bulletAppStateGame.setEnabled(false);
             highscore = 120 - bars.size();
             if (highscore > HS.getScore(level)) {
@@ -986,8 +991,14 @@ public class MainNew extends SimpleApplication implements ScreenController {
             highscore = 0;
             complete();
         }
+        
+         if (vehicle.getPhysicsLocation().getZ() > -15 && !b) {
+            makeCannonBall();
+            b = true;
+         }
+        
     }
-
+boolean b = false;
     // if the force on a joints exceeds a certain limit it will break
     private void checkBreakingJoints() {
         ArrayList<HingeJointRef> newJoints = new ArrayList<HingeJointRef>();
@@ -1133,7 +1144,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         StaticTrainNew s = new StaticTrainNew();
         vehicleNode = s.getSign(vehicleNode, matTrain, matTrain2, mat);
         vehicleNode.scale(0.4f);
-        vehicle = new VehicleControl(compoundShape, 3000);
+        vehicle = new VehicleControl(compoundShape, 30000000);
         vehicleNode.addControl(vehicle);
 
         //setting suspension values for wheels, this can be a bit tricky
@@ -1249,6 +1260,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         inputManager.setCursorVisible(false);
         menu = false;
         gameStarted = false;
+        b = false;
     }
 
     public void returnToGame() {

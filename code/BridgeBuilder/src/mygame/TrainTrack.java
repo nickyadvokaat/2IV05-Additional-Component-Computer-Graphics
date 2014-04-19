@@ -33,7 +33,7 @@ public class TrainTrack {
     public Node addWood(Node x, Material mat, int i) {
         box1 = new Box(3, 0.25f,1.5f);
         Wood = new Geometry("Box", box1);
-        Wood.setLocalTranslation(new Vector3f(2, 0, 3*i));
+        Wood.setLocalTranslation(new Vector3f(2, 0, 2.99f*i));
         Wood.setMaterial(mat);
         x.attachChild(Wood);
         return x;
@@ -42,7 +42,7 @@ public class TrainTrack {
     public Node addRail(Node x, Material mat, int i, float a) {
         box1 = new Box(0.25f, 0.25f,1.5f*i);
         Wood = new Geometry("Box", box1);
-        Wood.setLocalTranslation(new Vector3f(a, 0.5f, 1.5f*i-1.5f));
+        Wood.setLocalTranslation(new Vector3f(a, 0.5f, 1.49f*i-1.5f));
         Wood.setMaterial(mat);
         x.attachChild(Wood);
         return x;
