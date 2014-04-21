@@ -945,7 +945,7 @@ public class MainNew extends SimpleApplication implements ScreenController {
         // Position the cannon ball
         ball_geo.setLocalTranslation(new Vector3f(0.0f,10.0f,10.0f));
         // Make the ball physcial with a mass > 0.0f
-        ball_phy = new RigidBodyControl(2f);
+        ball_phy = new RigidBodyControl(0.2f);
         // Add physical ball to physics space.
         ball_geo.addControl(ball_phy);
         bulletAppStateGame.getPhysicsSpace().add(ball_phy);
@@ -1004,7 +1004,7 @@ boolean b = false;
         ArrayList<HingeJointRef> newJoints = new ArrayList<HingeJointRef>();
         for (int i = 0; i < this.joints.size(); i++) {
             HingeJointRef j = this.joints.get(i);
-            if (j.getAppliedImpulse() > 20) {
+            if (j.getAppliedImpulse() > 2) {
                 bulletAppStateGame.getPhysicsSpace().remove(j);
             } else {
                 newJoints.add(j);
