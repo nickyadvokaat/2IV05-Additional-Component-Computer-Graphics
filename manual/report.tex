@@ -1,0 +1,91 @@
+\documentclass[a4paper,twoside,11pt]{article}
+\usepackage{a4wide,graphicx,subfigure,fancyhdr,amsmath,amssymb,algpseudocode,enumerate,hyperref, float,color}
+\usepackage[english]{babel}
+\numberwithin{equation}{section}
+
+%----------------------- Macros and Definitions --------------------------
+
+\setlength\headheight{20pt}
+\addtolength\topmargin{-10pt}
+\addtolength\footskip{20pt}
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\ch}{\mathcal{CH}}
+
+\fancypagestyle{plain}{%
+\fancyhf{}
+\fancyhead[LO,RE]{\sffamily\bfseries\large}
+\fancyhead[RO,LE]{\sffamily\bfseries\large }
+\fancyfoot[LO,RE]{\sffamily\bfseries\large }
+\fancyfoot[RO,LE]{\sffamily\bfseries\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RO,LE]{\sffamily\bfseries\large 2IV05}
+\fancyhead[LO,RE]{\sffamily\bfseries\large Submission III}
+\fancyfoot[LO,RE]{\sffamily\bfseries\large }
+\fancyfoot[RO,LE]{\sffamily\bfseries\thepage}
+\renewcommand{\headrulewidth}{1pt}
+\renewcommand{\footrulewidth}{0pt}
+\newcommand{\name}{Bridge builder 3D}
+\newcommand{\key}[1]{\textcolor{blue}{#1}}
+
+%-------------------------------- Title ----------------------------------
+
+\title{\vspace{-\baselineskip}\sffamily\bfseries 2IV05 - Bridge Builder - Manual}
+
+\author{
+Nicky Advokaat - 0740567 - {\tt n.advokaat@student.tue.nl} \\
+Bart Wezel - 0740608 - {\tt b.j.p.a.v.wezel@student.tue.nl}\\
+}
+
+\date{3\textsuperscript{rd} quartile, 2014}
+
+%--------------------------------- Text ----------------------------------
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\begin{abstract}
+This report  describes how to use \name , our game project  for the course 2IV05 Additional Component Computer Graphics. The goal of this game is to construct a bridge over a ravine, such that a train can pass over it.
+\end{abstract}
+
+\section{Setup}
+Start the executable JAR from the distribution folder. The game is requires Java to run, but has no other dependencies.\\
+A menu with technical settings will appear, change them if you like. If you don not know what these settings mean, simply press the \key{Continue} button at the bottom of the menu, and the game will start.\\
+You will now see a 3D landscape, here you are going to construct your bridge.
+
+\section{Moving the camera}
+The mouse is always located in the center of the screen, which is the camera looking direction. By moving the mouse, the player can look around the world.
+Moving the camera is done by pressing the following keys: \\
+\\
+\begin{tabular}{ l l }
+  \key{W} & move forwards  \\
+  \key{A} & move to the left \\
+  \key{D} & move to the right \\
+  \key{S} & move backwards \\
+  \key{Q} & move upwards \\
+  \key{Z} & move downwards \\
+\end{tabular}
+
+\section{Bridge construction}
+All construction is done by clicking the left mouse button. To start constructing, click on one of the gray blocks, which are the initial connectors of the bridge. Now, a number of black connectors are suggested. Clicking on one of these black blocks will create a connection between the previously clicked gray block and the black block. This process can now be repeated as many times as necessary to create the bridge you desire.\\
+At any time during construction, the \key{R} key can be pressed to undo the most recently placed block.
+
+\section{Starting the simulation}
+Once you are satisfied with the bridge you have constructed, the \key{P} key can be pressed to start the simulation. At this point you can no longer place new blocks. The physics engine will be turned on, and the train at the far end of the bridge will start moving forwards towards the other end. In case the train safely makes it to the other end of the ravine, a message will be displayed stating that your bridge was successful, and you are given the option to continue to the next level. In case the bridge collapses and the train crashes into the ravine, a message will show asking you to retry the level.
+
+\section{Menu}
+The menu of the game pops up by pressing the \key{ESC} key. It has the following items:\\
+\\
+\begin{tabular}{ l l }
+  Return to game & the menu is dismissed  \\
+  Restart & undo the placing of all blocks \\
+  Select level & select one of the four levels, they have increasing difficulty \\
+  End game & quits the game, and closes the application window \\
+\end{tabular}
+
+\end{document}
