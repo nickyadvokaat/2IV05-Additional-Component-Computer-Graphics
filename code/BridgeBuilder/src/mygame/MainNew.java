@@ -1004,7 +1004,7 @@ boolean b = false;
         ArrayList<HingeJointRef> newJoints = new ArrayList<HingeJointRef>();
         for (int i = 0; i < this.joints.size(); i++) {
             HingeJointRef j = this.joints.get(i);
-            if (j.getAppliedImpulse() > 2) {
+            if (j.getAppliedImpulse() > 20) {
                 bulletAppStateGame.getPhysicsSpace().remove(j);
             } else {
                 newJoints.add(j);
